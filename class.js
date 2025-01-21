@@ -6,13 +6,25 @@
 
 class City {
     constructor(cityGrid, jewelCount) { 
-        cityGrid = new Array(10);
-        for (var i = 0; i < cityGrid.length; i++) {
-            cityGrid[i] = new Array(10)
+        if (!cityGrid) {
+            cityGrid = new Array(10);
+            for (var i = 0; i < cityGrid.length; i++) {
+                cityGrid[i] = new Array(10);
+            }
         }
         this.cityGrid = cityGrid;
         this.jewelCount = jewelCount;
-     }
+    }
+    populateGrid(){//not finished
+        options = ["J", "R", "P"];
+        for ( var x = 0; x < 10; x++) {
+            for ( var y = 0; y < 10; y++) {
+                choice = options[Math.floor(Math.random() * 3)];
+                this.cityGrid[x][y] = choice;
+
+            }
+        }
+    }
 }
 
 class Jewel {
@@ -82,7 +94,7 @@ class Robber {
                     loss = Math.floor(this.checkBag / 2);
                 }
                 for (loss; loss != 0; loss--) {
-                    this.totalLootWorth -= this.lootBag[loss];
+                    this.totalLootWorth -= this.lootBag[loss].jewelValue;
                     this.lootBag[loss] = null;
                 }
             }
@@ -118,7 +130,7 @@ class Police {
         this.robbersCaught += 1;
     }
     move() {
-        this.performMove;
+        this.performMove();
         if (cityGrid[this.policeCoord.x][this.policeCoord.y] == "R") {
             robber = cityGrid[this.policeCoord.x][this.policeCoord.y]
             cityGrid[this.policeCoord.x][this.policeCoord.y] = null;
