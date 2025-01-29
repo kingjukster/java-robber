@@ -77,11 +77,12 @@ class Robber {
         return this.lootBag.findIndex(item => item === null);
     }
 
-    pickUpLoot(jewel) {
+    pickUpLoot(jewel, cityGrid) {
         const nextSpot = this.checkBag();
         if (nextSpot !== -1) {
             this.lootBag[nextSpot] = jewel;
             this.totalLootWorth += jewel.jewelValue;
+            cityGrid.jewelCount--;
         }
     }
 
@@ -104,6 +105,13 @@ class Robber {
             cityGrid[newCoord.x][newCoord.y] = this;
         }
     }
+    newMove(cityGrid) {
+        // base case: if there are no more jewels
+        if (cityGrid.jewelCount == 0) {
+            return true;
+        }
+        
+    }
 }
 
 class Police {
@@ -118,6 +126,11 @@ class Police {
         this.lootWorth += robber.totalLootWorth;
         this.robbersCaught++;
         robber.isActive = false;
+    }
+
+    pickUpLoot(jewel, cityGrid) {
+        this.lootWorth += jewel.jewelValue;
+        cityGrid.jewelCount--;
     }
 
     getValidDirections(cityGrid) {
@@ -138,6 +151,8 @@ class Police {
 
             if (targetCell instanceof Robber && targetCell.isActive) {
                 this.arrestRobber(targetCell);
+            }else if (targetCell instanceof Jewel) {
+                this.pickUpLoot(targetCell);
             }
 
             cityGrid[this.policeCoord.x][this.policeCoord.y] = null;
