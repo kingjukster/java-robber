@@ -5,15 +5,14 @@
 // Purpose: This file contains a cops vs robbers game implementation
 
 class City {
-    constructor(cityGrid, jewelCount) { 
-        if (!cityGrid) {
-            cityGrid = Array.from({ length: 10 }, () => Array(10).fill(null));
-        }
+    constructor(cityGrid = Array.from({ length: 10 }, () => Array(10).fill(null))) { 
         this.cityGrid = cityGrid;
-        this.jewelCount = jewelCount;
         this.maxJewels = 47;
+        this.jewelCount = this.maxJewels;
         this.maxRobbers = 4;
         this.maxPolice = 1;
+        this.robberList = [];
+        this.policeList = [];
     }
 
     populateGrid() {
@@ -32,13 +31,17 @@ class City {
                     jewelsPlaced++;
                 } else if (choice === "R" && robbersPlaced < this.maxRobbers) {
                     this.cityGrid[x][y] = new Robber(robbersPlaced + 1, { x, y }, Array(17).fill(null), true, "ordinary");
+                    this.robberList.push(this.cityGrid[x][y]);
                     robbersPlaced++;
                 } else if (choice === "P" && policePlaced < this.maxPolice) {
                     this.cityGrid[x][y] = new Police(policePlaced + 1, { x, y }, 0, 0);
+                    this.policeList.push(this.cityGrid[x][y]);
                     policePlaced++;
                 }
             }
         }
+        
+        //console.log(this.cityGrid[0][0]);
     }
 
     printGrid() {
@@ -53,6 +56,20 @@ class City {
             )
         );
     }
+
+    getValidDirections(coord) {
+        const directions = [
+            { x: -1, y: 0 }, // Up
+            { x: 1, y: 0 },  // Down
+            { x: 0, y: -1 }, // Left
+            { x: 0, y: 1 }   // Right
+        ];
+    
+        return directions
+            .map(dir => ({ x: coord.x + dir.x, y: coord.y + dir.y }))
+            .filter(pos => pos.x >= 0 && pos.x < 10 && pos.y >= 0 && pos.y < 10);
+    }
+    
 }
 
 class Jewel {
@@ -77,40 +94,71 @@ class Robber {
         return this.lootBag.findIndex(item => item === null);
     }
 
-    pickUpLoot(jewel, cityGrid) {
+    pickUpLoot(jewel, city) {
         const nextSpot = this.checkBag();
         if (nextSpot !== -1) {
             this.lootBag[nextSpot] = jewel;
             this.totalLootWorth += jewel.jewelValue;
-            cityGrid.jewelCount--;
+            console.log(city.jewelCount)
+            city.jewelCount--;
         }
     }
 
-    getValidDirections(cityGrid) {
+    getValidDirections(city) {
+        // Define the possible directions to move (Up, Down, Left, Right)
         const directions = [
-            { x: this.robberCoord.x - 1, y: this.robberCoord.y },
-            { x: this.robberCoord.x + 1, y: this.robberCoord.y },
-            { x: this.robberCoord.x, y: this.robberCoord.y - 1 },
-            { x: this.robberCoord.x, y: this.robberCoord.y + 1 }
+            { x: this.robberCoord.x - 1, y: this.robberCoord.y }, // Up
+            { x: this.robberCoord.x + 1, y: this.robberCoord.y }, // Down
+            { x: this.robberCoord.x, y: this.robberCoord.y - 1 }, // Left
+            { x: this.robberCoord.x, y: this.robberCoord.y + 1 }  // Right
         ];
-        return directions.filter(d => d.x >= 0 && d.x < 10 && d.y >= 0 && d.y < 10 && !cityGrid[d.x][d.y]);
-    }
+    
+        // Create an empty array to store valid directions
+        let validDirections = [];
+    
+        // Loop through each direction and check if it's valid
+        for (let i = 0; i < directions.length; i++) {
+            let d = directions[i];
+    
+            // Check if the new position is within bounds and the cell is empty
+            // Check if d.x is within bounds
+            let isXInBounds = d.x >= 0 && d.x < 10;
+            console.log(isXInBounds);
 
-    move(cityGrid) {
-        const validDirections = this.getValidDirections(cityGrid);
+            // Check if d.y is within bounds
+            let isYInBounds = d.y >= 0 && d.y < 10;
+            
+            console.log(isYInBounds);
+            // Check if the target position is empty (null)
+            
+            console.log(city.cityGrid[0][0]);
+            let isPositionEmpty = city.cityGrid[d.x][d.y] == null;
+            
+            console.log(isPositionEmpty);
+            // Combine all conditions to check if the direction is valid
+            if (isXInBounds && isYInBounds && isPositionEmpty) {
+                validDirections.push(d);
+            }
+
+        }
+    
+        // Return the list of valid directions
+        return validDirections;
+    }
+    
+
+    move(city) {
+        const validDirections = city.getValidDirections(this.robberCoord);
         if (validDirections.length > 0) {
             const newCoord = validDirections[Math.floor(Math.random() * validDirections.length)];
-            cityGrid[this.robberCoord.x][this.robberCoord.y] = null;
+            const targetCell = city.cityGrid[newCoord.x][newCoord.y];
+            if (targetCell instanceof Jewel) {
+                this.pickUpLoot(targetCell, city);
+            }
+            city.cityGrid[this.robberCoord.x][this.robberCoord.y] = null;
             this.robberCoord = newCoord;
-            cityGrid[newCoord.x][newCoord.y] = this;
+            city.cityGrid[newCoord.x][newCoord.y] = this;
         }
-    }
-    newMove(cityGrid) {
-        // base case: if there are no more jewels
-        if (cityGrid.jewelCount == 0) {
-            return true;
-        }
-        
     }
 }
 
@@ -128,38 +176,56 @@ class Police {
         robber.isActive = false;
     }
 
-    pickUpLoot(jewel, cityGrid) {
-        this.lootWorth += jewel.jewelValue;
-        cityGrid.jewelCount--;
-    }
-
-    getValidDirections(cityGrid) {
+    getValidDirections(city) {
         const directions = [
             { x: this.policeCoord.x - 1, y: this.policeCoord.y },
             { x: this.policeCoord.x + 1, y: this.policeCoord.y },
             { x: this.policeCoord.x, y: this.policeCoord.y - 1 },
             { x: this.policeCoord.x, y: this.policeCoord.y + 1 }
         ];
-        return directions.filter(d => d.x >= 0 && d.x < 10 && d.y >= 0 && d.y < 10);
+        return directions.filter(d =>
+            d.x >= 0 && d.x < 10 && d.y >= 0 && d.y < 10 &&
+            (city.cityGrid[d.x][d.y] === null || city.cityGrid[d.x][d.y] instanceof Robber)  // Police can't move onto a Jewel or another Police
+        );
     }
+    
 
-    move(cityGrid) {
-        const validDirections = this.getValidDirections(cityGrid);
-        if (validDirections.length > 0) {
-            const newCoord = validDirections[Math.floor(Math.random() * validDirections.length)];
-            const targetCell = cityGrid[newCoord.x][newCoord.y];
-
-            if (targetCell instanceof Robber && targetCell.isActive) {
-                this.arrestRobber(targetCell);
-            }else if (targetCell instanceof Jewel) {
-                this.pickUpLoot(targetCell);
+    move(city) {
+        const validDirections = city.getValidDirections(this.policeCoord);
+        let newCoord = null;
+    
+        // Prioritize moving towards a robber
+        for (const dir of validDirections) {
+            if (city.cityGrid[dir.x] && city.cityGrid[dir.x][dir.y] instanceof Robber && city.cityGrid[dir.x][dir.y].isActive) {
+                this.arrestRobber(city.cityGrid[dir.x][dir.y]);
+                city.cityGrid[dir.x][dir.y] = this;  // Move police to robber's position
+                // Clear original position of the police
+                if (city.cityGrid[this.policeCoord.x] && city.cityGrid[this.policeCoord.x][this.policeCoord.y] !== undefined) {
+                    city.cityGrid[this.policeCoord.x][this.policeCoord.y] = null;
+                }
+                this.policeCoord = dir;
+                return;
             }
-
-            cityGrid[this.policeCoord.x][this.policeCoord.y] = null;
-            this.policeCoord = newCoord;
-            cityGrid[newCoord.x][newCoord.y] = this;
         }
-    }
+    
+        // If no robbers were found, make a random move
+        if (validDirections.length > 0) {
+            newCoord = validDirections[Math.floor(Math.random() * validDirections.length)];
+            
+            // Ensure newCoord is within bounds
+            if (newCoord && newCoord.x >= 0 && newCoord.x < 10 && newCoord.y >= 0 && newCoord.y < 10) {
+                // Check if the new position is valid
+                if (city.cityGrid[newCoord.x] && city.cityGrid[newCoord.x][newCoord.y] !== undefined) {
+                    if (city.cityGrid[this.policeCoord.x] && city.cityGrid[this.policeCoord.x][this.policeCoord.y] !== undefined) {
+                        city.cityGrid[this.policeCoord.x][this.policeCoord.y] = null;
+                    }
+                    this.policeCoord = newCoord;
+                    city.cityGrid[newCoord.x][newCoord.y] = this;
+                }
+            }
+        }
+    }    
+            
 }
 
 class Game {
@@ -173,23 +239,34 @@ class Game {
     playTurn() {
         console.log(`Turn ${this.turns + 1}`);
 
+        this.city.robberList[0].move();
+        this.city.robberList[1].move();
+        this.city.robberList[2].move();
+        this.city.robberList[3].move();
+        this.city.policeList[0].move();
+        /*
         this.city.cityGrid.forEach(row => {
             row.forEach(cell => {
                 if (cell instanceof Robber && cell.isActive) {
-                    cell.move(this.city.cityGrid);
+                    this.city.printGrid();
+                    console.log(`Robber ${cell.robberId} at (${cell.robberCoord.x}, ${cell.robberCoord.y}) moves.`);
+                    cell.move(this.city);
                 } else if (cell instanceof Police) {
-                    cell.move(this.city.cityGrid);
+                    this.city.printGrid();
+                    console.log(`Police at (${cell.policeCoord.x}, ${cell.policeCoord.y}) moves.`);
+                    cell.move(this.city);
                 }
             });
-        });
+        });*/
 
+        console.log(`Jewels remaining: ${this.city.jewelCount}`);
         this.city.printGrid();
     }
 
     isGameOver() {
         const robbers = this.city.cityGrid.flat().filter(cell => cell instanceof Robber);
         const totalLoot = robbers.reduce((sum, r) => sum + r.totalLootWorth, 0);
-        return totalLoot >= 438 || robbers.every(r => !r.isActive);
+        return totalLoot >= 100 || robbers.every(r => !r.isActive);
     }
 
     start() {
