@@ -1,0 +1,55 @@
+/* Reset body margins and padding */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Center the main content */
+  #grid-container {
+    text-align: center;
+    border: 2px solid #333;
+    padding: 30px;  /* Increased padding */
+    display: inline-block;
+    margin-top: 20px;
+    background-color: #f0f0f0;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  #grid {
+    margin-bottom: 20px;
+    white-space: pre;  /* Preserve spaces in the grid */
+    font-family: monospace;  /* Use monospaced font for the grid */
+    font-size: 30px;  /* Increased font size */
+    line-height: 2;  /* Increased line height for spacing */
+    text-align: center;
+    letter-spacing: 2px;  /* Adds a bit of space between letters */
+    min-width: 500px;  /* Makes sure the grid is wide enough */
+    min-height: 500px;  /* Ensures the grid is tall enough */
+  }
+  
+  button {
+    margin: 10px;
+    padding: 15px 30px;
+    font-size: 20px;  /* Larger font size for the button */
+    cursor: pointer;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+  }
+  
+  button:hover {
+    background-color: #45a049;
+  }
+  
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 36px;  /* Increase title font size */
+  }
+  

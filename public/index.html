@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cops vs Robbers Game</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="grid-container">
+    <h1>Cops vs Robbers Game</h1>
+    <div id="grid">Loading grid...</div>
+    <button onclick="startGame()">Start Game</button>
+    <button onclick="nextTurn()">Next Turn</button>
+  </div>
+
+  <script>
+  let gameStarted = false;
+
+  function startGame() {
+    fetch('/start-game')
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert(data.message);
+          gameStarted = true; // Indicate that the game has started
+        }
+      })
+      .catch(error => console.error('Error:', error));
+  }
+
+  function nextTurn() {
+    if (!gameStarted) {
+      alert("Please start the game first!");
+      return;
+    }
+
+    fetch('/next-turn')
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert(data.message);
+          if (data.winner) {
+            alert(data.winner);  // Show who won the game
+          }
+        } else {
+          document.getElementById('grid').innerText = data.grid;
+        }
+      })
+      .catch(error => console.error('Error:', error));
+  }
+  </script>
+
+</body>
+</html>
