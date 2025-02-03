@@ -1,4 +1,7 @@
-const { Robber } = require('./robber');
+function getRobberClass() {
+    return require('./robber').Robber;
+}
+
 
 class Police {
     constructor(policeId, policeCoord) {
@@ -9,33 +12,24 @@ class Police {
     }
 
     arrestRobber(robber) {
-        this.lootWorth += robber.totalLootWorth;
-        this.robbersCaught++;
-        robber.isActive = false;
+        const Robber = getRobberClass();  // Import here to break the circular dependency
+        if (robber instanceof Robber) {
+            this.lootWorth += robber.totalLootWorth;
+            this.robbersCaught++;
+            robber.isActive = false;
+        }
     }
-
-    /*
-    getValidDirections(city) {
-        const directions = [
-            { x: this.policeCoord.x - 1, y: this.policeCoord.y },
-            { x: this.policeCoord.x + 1, y: this.policeCoord.y },
-            { x: this.policeCoord.x, y: this.policeCoord.y - 1 },
-            { x: this.policeCoord.x, y: this.policeCoord.y + 1 }
-        ];
-        return directions.filter(d =>
-            d.x >= 0 && d.x < 10 && d.y >= 0 && d.y < 10 &&
-            (city.cityGrid[d.x][d.y] === null || city.cityGrid[d.x][d.y] instanceof Robber)  // Police can't move onto a Jewel or another Police
-        );
-    }
-    */
+    
 
     move(city) {
+        const { Robber } = require('./robber');  // Import here to break circular dependency
+        
         const validDirections = city.getValidDirections(this.policeCoord);
         let newCoord = null;
         let turnPlayed = false;
         // Prioritize moving towards a robber
         for (const dir of validDirections) {
-            if (city.cityGrid[dir.x] && city.cityGrid[dir.x][dir.y] instanceof Robber && city.cityGrid[dir.x][dir.y].isActive) {
+            if (city.cityGrid[dir.x][dir.y] instanceof Robber && city.cityGrid[dir.x][dir.y].isActive) {
                 this.arrestRobber(city.cityGrid[dir.x][dir.y]);
                 city.cityGrid[dir.x][dir.y] = this;  // Move police to robber's position
                 // Clear original position of the police

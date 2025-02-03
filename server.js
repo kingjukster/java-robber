@@ -12,43 +12,49 @@ app.use(express.static('public'));
 let game;
 
 app.get('/start-game', (req, res) => {
-  game = new Game(); // Initialize the game
-  game.populateGrid(); // Populate the grid when the game starts
-  res.send({ message: 'Game Started!' });
+  game = new Game();  // Reset the game
+  game.populateGrid(); // Initialize the grid
+
+  const cityGrid = game.city.cityGrid.map(row => 
+      row.map(cell => {
+          if (cell instanceof Jewel) return "J";
+          if (cell instanceof Robber) return "R";
+          if (cell instanceof Police) return "P";
+          return ".";
+      })
+  );
+
+  res.json({ cityGrid });
 });
 
-app.get('/next-turn', (req, res) => {
-  if (!game) {
-    return res.status(400).json({ message: 'Game has not started yet.' });
-  }
 
-  // Play one turn
-  game.playTurn();
+
+app.get('/next-turn', (req, res) => {
+  game.playTurn(); // Advance the game
 
   // Check if the game is over
   if (game.isGameOver()) {
-    return res.json({
-      message: 'Game Over',
-      winner: game.isGameOver() === 'robbers' ? 'Robbers win!' : 'Police win!',
-      grid: game.city.cityGrid.map(row => row.map(cell => {
-        if (cell instanceof Jewel) return "J";
-        if (cell instanceof Robber) return "R";
-        if (cell instanceof Police) return "P";
-        return ".";
-      }).join(" ")).join("\n")
-    });
+      return res.json({ 
+          message: game.getGameOverMessage(), // Send game-over message
+          cityGrid: null  // No need to send grid since game is over
+      });
   }
 
-  // Return the updated grid if the game is not over
-  res.json({
-    grid: game.city.cityGrid.map(row => row.map(cell => {
-      if (cell instanceof Jewel) return "J";
-      if (cell instanceof Robber) return "R";
-      if (cell instanceof Police) return "P";
-      return ".";
-    }).join(" ")).join("\n")
-  });
+  // Otherwise, return the updated grid
+  const cityGrid = game.city.cityGrid.map(row => 
+      row.map(cell => {
+          if (cell instanceof Jewel) return "J";
+          if (cell instanceof Robber) return "R";
+          if (cell instanceof Police) return "P";
+          return ".";
+      })
+  );
+
+  res.json({ cityGrid });
 });
+
+
+
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

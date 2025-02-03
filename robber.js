@@ -1,4 +1,5 @@
 const { Jewel } = require('./jewel');
+const { Police } = require('./police');
 
 class Robber {
     constructor(robberId, robberCoord, robberType) {
@@ -24,50 +25,6 @@ class Robber {
             city.cityGrid[jewel.jewelCoord.x][jewel.jewelCoord.y] = null;
         }
     }
-
-    /*
-    getValidDirections(city) {
-        // Define the possible directions to move (Up, Down, Left, Right)
-        const directions = [
-            { x: this.robberCoord.x - 1, y: this.robberCoord.y }, // Up
-            { x: this.robberCoord.x + 1, y: this.robberCoord.y }, // Down
-            { x: this.robberCoord.x, y: this.robberCoord.y - 1 }, // Left
-            { x: this.robberCoord.x, y: this.robberCoord.y + 1 }  // Right
-        ];
-    
-        // Create an empty array to store valid directions
-        let validDirections = [];
-    
-        // Loop through each direction and check if it's valid
-        for (let i = 0; i < directions.length; i++) {
-            let d = directions[i];
-    
-            // Check if the new position is within bounds and the cell is empty
-            // Check if d.x is within bounds
-            let isXInBounds = d.x >= 0 && d.x < 10;
-            console.log(isXInBounds);
-
-            // Check if d.y is within bounds
-            let isYInBounds = d.y >= 0 && d.y < 10;
-            
-            console.log(isYInBounds);
-            // Check if the target position is empty (null)
-            
-            console.log(city.cityGrid[0][0]);
-            let isPositionEmpty = city.cityGrid[d.x][d.y] == null;
-            
-            console.log(isPositionEmpty);
-            // Combine all conditions to check if the direction is valid
-            if (isXInBounds && isYInBounds && isPositionEmpty) {
-                validDirections.push(d);
-            }
-
-        }
-    
-        // Return the list of valid directions
-        return validDirections;
-    }
-        */
     
 
     move(city) {
@@ -76,10 +33,9 @@ class Robber {
 
         if (this.robberType == "greedy"){
             for (const dir of validDirections) {
-            if (city.cityGrid[dir.x] && city.cityGrid[dir.x][dir.y] instanceof Jewel) {
+            if (city.cityGrid[dir.x][dir.y] instanceof Jewel) {
                 this.pickUpLoot(city.cityGrid[dir.x][dir.y], city);
-                city.cityGrid[dir.x][dir.y] = this;  // Move police to robber's position
-                // Clear original position of the police
+                city.cityGrid[dir.x][dir.y] = this;
                 if (city.cityGrid[this.robberCoord.x][this.robberCoord.y] !== undefined) {
                     city.cityGrid[this.robberCoord.x][this.robberCoord.y] = null;
                 }
@@ -96,6 +52,9 @@ class Robber {
             const targetCell = city.cityGrid[newCoord.x][newCoord.y];
             if (targetCell instanceof Jewel) {
                 this.pickUpLoot(targetCell, city);
+            }
+            if (targetCell instanceof Police) {
+                police.arrestRobber(city.cityGrid[this.robberCoord.x][this.robberCoord.y]);
             }
             city.cityGrid[this.robberCoord.x][this.robberCoord.y] = null;
             this.robberCoord = newCoord;

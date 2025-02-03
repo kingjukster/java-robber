@@ -15,7 +15,7 @@ class Game {
             new Robber(1, { x: 0, y: 0 }, "ordinary"),
             new Robber(2, { x: 0, y: 0 }, "ordinary"),
             new Robber(3, { x: 0, y: 0 }, "ordinary"),
-            new Robber(4, { x: 0, y: 0 }, "greedy")
+            new Robber(4, { x: 0, y: 0 }, "ordinary")
         ];
         this.police = [new Police(1, { x: 0, y: 0 })];
     }
@@ -64,14 +64,14 @@ class Game {
     playTurn() {
         console.log(`Turn ${this.turns + 1}`);
 
+        for (const officer of this.police) {
+            officer.move(this.city);
+        }
+
         for (const robber of this.robbers) {
             if (robber.isActive) {
                 robber.move(this.city);
             }
-        }
-
-        for (const officer of this.police) {
-            officer.move(this.city);
         }
 
         this.turns++;
@@ -80,18 +80,20 @@ class Game {
     }
 
     isGameOver() {
-        const robberz = this.city.cityGrid.flat().filter(cell => cell instanceof Robber);
-        const totalLoot = robberz.reduce((sum, r) => sum + r.totalLootWorth, 0);
+        const robbers = this.city.cityGrid.flat().filter(cell => cell instanceof Robber);
+        const totalLoot = robbers.reduce((sum, r) => sum + r.totalLootWorth, 0);
+    
         if (totalLoot >= 200) {
             console.log("Robbers win by collecting enough loot!");
-            return true;
+            return "Robbers Win!";
         }
-        if (robberz.every(r => !r.isActive)) {
+        if (robbers.every(r => !r.isActive)) {
             console.log("Police win by catching all robbers!");
-            return true;
+            return "Police Win!";
         }
-        return false;
+        return false; // Game continues
     }
+    
     
 
     start() {
