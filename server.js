@@ -12,7 +12,7 @@ app.use(express.static('public'));
 let game;
 
 app.get('/start-game', (req, res) => {
-  game = new Game();  // Reset the game
+  game = new Game();
   game.populateGrid(); // Initialize the grid
 
   const cityGrid = game.city.cityGrid.map(row => 
@@ -24,7 +24,7 @@ app.get('/start-game', (req, res) => {
       })
   );
 
-  res.json({ cityGrid });
+  res.json({ cityGrid});
 });
 
 
@@ -32,27 +32,45 @@ app.get('/start-game', (req, res) => {
 app.get('/next-turn', (req, res) => {
   game.playTurn(); // Advance the game
 
-  // Check if the game is over
-  if (game.isGameOver()) {
+  // Get game-over status
+  const gameOverMessage = game.isGameOver();
+
+  if (gameOverMessage) {  // If gameOverMessage is not false
       return res.json({ 
-          message: game.getGameOverMessage(), // Send game-over message
-          cityGrid: null  // No need to send grid since game is over
+          message: gameOverMessage, // Send the result from isGameOver()
+          cityGrid: null  // No need to send the grid since game is over
       });
   }
+  // Map cityGrid to a readable format
+  const cityGrid = game.city.cityGrid.map(row => 
+    row.map(cell => {
+        if (cell instanceof Jewel) return "J";
+        if (cell instanceof Robber) return "R";
+        if (cell instanceof Police) return "P";
+        return ".";  // Empty space
+    })
+);
 
-  // Otherwise, return the updated grid
+  res.json({ cityGrid });
+});
+
+
+app.get('/new-game', (req, res) => {
+  // Reset game by creating a new Game object and re-populating the grid
+  game = new Game();  // Recreate the Game object to reset
+  game.populateGrid();  // Reinitialize the grid
+
   const cityGrid = game.city.cityGrid.map(row => 
       row.map(cell => {
           if (cell instanceof Jewel) return "J";
           if (cell instanceof Robber) return "R";
           if (cell instanceof Police) return "P";
-          return ".";
+          return ".";  // Empty cell
       })
   );
 
-  res.json({ cityGrid });
+  res.json({ cityGrid });  // Send back the fresh city grid
 });
-
 
 
 

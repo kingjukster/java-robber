@@ -91,6 +91,10 @@ class Game {
             console.log("Police win by catching all robbers!");
             return "Police Win!";
         }
+        if (this.maxTurns == this.turns) {
+            console.log("Police win by turn limit!");
+            return "Police Win!";
+        }
         return false; // Game continues
     }
     

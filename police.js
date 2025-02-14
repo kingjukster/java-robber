@@ -23,20 +23,24 @@ class Police {
 
     move(city) {
         const { Robber } = require('./robber');  // Import here to break circular dependency
-        
+
+        // Get valid directions from the police's current position
         const validDirections = city.getValidDirections(this.policeCoord);
         let newCoord = null;
         let turnPlayed = false;
+    
         // Prioritize moving towards a robber
         for (const dir of validDirections) {
             if (city.cityGrid[dir.x][dir.y] instanceof Robber && city.cityGrid[dir.x][dir.y].isActive) {
                 this.arrestRobber(city.cityGrid[dir.x][dir.y]);
                 city.cityGrid[dir.x][dir.y] = this;  // Move police to robber's position
+                
                 // Clear original position of the police
-                if (city.cityGrid[this.policeCoord.x] && city.cityGrid[this.policeCoord.x][this.policeCoord.y] !== undefined) {
+                if (city.cityGrid[this.policeCoord.x] && city.cityGrid[this.policeCoord.x][this.policeCoord.y]) {
                     city.cityGrid[this.policeCoord.x][this.policeCoord.y] = null;
                 }
-                this.policeCoord = dir;
+    
+                this.policeCoord = dir;  // Update police position
                 turnPlayed = true;
                 return;
             }
@@ -44,25 +48,21 @@ class Police {
     
         // If no robbers were found, make a random move
         if (validDirections.length > 0) {
-            if (turnPlayed) {
-                console.log("free turn baby")
-            }
+            // Make a random move from valid directions
             newCoord = validDirections[Math.floor(Math.random() * validDirections.length)];
-            
+    
             // Ensure newCoord is within bounds
             if (newCoord && newCoord.x >= 0 && newCoord.x < 10 && newCoord.y >= 0 && newCoord.y < 10) {
                 // Check if the new position is valid
-                if (city.cityGrid[newCoord.x] && city.cityGrid[newCoord.x][newCoord.y] !== undefined) {
-                    if (city.cityGrid[this.policeCoord.x] && city.cityGrid[this.policeCoord.x][this.policeCoord.y] !== undefined) {
-                        city.cityGrid[this.policeCoord.x][this.policeCoord.y] = null;
-                    }
-                    this.policeCoord = newCoord;
-                    city.cityGrid[newCoord.x][newCoord.y] = this;
+                if (city.cityGrid[this.policeCoord.x] && city.cityGrid[this.policeCoord.x][this.policeCoord.y]) {
+                    city.cityGrid[this.policeCoord.x][this.policeCoord.y] = null;  // Clear the police's original position
                 }
+    
+                this.policeCoord = newCoord;  // Update police position
+                city.cityGrid[newCoord.x][newCoord.y] = this;  // Place police at new position
             }
         }
-    }    
-            
+    }
 }
 
 module.exports = { Police }
