@@ -62,6 +62,7 @@ async function fetchGrid() {
       fetch('/next-turn')
         .then(response => response.json())
         .then(data => {
+          console.log(data.cityGrid);
           if (data.message) {
             alert(data.message);  // Show game-over message
             document.getElementById('next-turn-btn').disabled = true;  // Disable button
@@ -73,3 +74,22 @@ async function fetchGrid() {
         })
         .catch(error => console.error('Error:', error));
     }
+
+    // New Game function
+function newGame() {
+  // Re-enable the "Start Game" button (in case the user wants to start a new session after finishing)
+  document.getElementById('start-game').style.display = 'block'; // Show start button
+  document.getElementById('game-container').style.display = 'none'; // Hide the grid container
+  document.getElementById('next-turn-btn').disabled = false;
+  // Reset game on the server side by calling '/new-game'
+  fetch('/new-game')
+    .then(response => response.json())
+    .then(data => {
+      if (data.cityGrid) {
+        populateGrid(data.cityGrid);
+        document.getElementById('start-game').style.display = 'none'; // Hide start button
+        document.getElementById('game-container').style.display = 'block'; // Show the grid
+      }
+    })
+    .catch(error => console.error('Error:', error));
+}
