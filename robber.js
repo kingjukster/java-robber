@@ -49,7 +49,7 @@ class Robber {
 
         if (validDirections.length > 0) {
             newCoord = validDirections[Math.floor(Math.random() * validDirections.length)];
-            const targetCell = city.cityGrid[newCoord.x][newCoord.y];
+            let targetCell = city.cityGrid[newCoord.x][newCoord.y];
             if (targetCell instanceof Jewel) {
                 this.pickUpLoot(targetCell, city);
                 city.cityGrid[this.robberCoord.x][this.robberCoord.y] = null;
