@@ -29,7 +29,7 @@ CREATE TABLE TurnLogs (
     FOREIGN KEY (game_id) REFERENCES GameStats(game_id)
 );
 
-
+SELECT game_id FROM GameStats WHERE game_id = (SELECT MAX(game_id) FROM GameStats);
 SELECT * FROM GameStats;
 SELECT * FROM PlayerStats;
 

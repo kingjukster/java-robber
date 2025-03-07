@@ -4,7 +4,7 @@ const { Game } = require('./game');
 const { Jewel } = require('./jewel');
 const { Robber } = require('./robber');
 const { Police } = require('./police');
-const { createGame, addPlayer, logTurn } = require('./gameService');
+const { addGame, addPlayer, logTurn } = require('./gameService');
 const app = express();
 const port = 3000;
 
@@ -36,20 +36,20 @@ app.get('/next-turn', async (req, res) => {
   // Get game-over status
   const gameOverMessage = game.isGameOver();
 
-  if (gameOverMessage) {  // If gameOverMessage is not false
+  if (gameOverMessage) {  // If gameOverMessage is true
     try {
-      const winner = gameOverMessage === "Robber wins" ? "Robber" : "Police";
-      const turnCount = game.turns;
-      console.log(turnCount);
-      const gameRecord = await createGame({ turnCount, winner });
-      const gameID = gameRecord.game_id;
+      //const winner = ;
+      //const turnCount = game.turns;
+      console.log(game.turns);
+      //const gameRecord = await addGame({ turnCount: game.turns, winner: gameOverMessage === "Robber wins" ? "Robber" : "Police" });
+      //console.log(gameRecord);
       for ( let x = 0; x < 10; x++ ) {
         for ( let y = 0; y < 10; y++ ) {
           if (game.city.cityGrid[x][y] instanceof Robber) {
-            await addPlayer( gameID, "Robber", game.city.cityGrid[x][y].totalLootWorth )
+            await addPlayer({role: 'Robber', lootWorth: game.city.cityGrid[x][y].totalLootWorth} )
           }
           if (game.city.cityGrid[x][y] instanceof Police) {
-            await addPlayer( gameID, "Police", game.city.cityGrid[x][y].lootWorth, game.city.cityGrid[x][y].robbersCaught )
+            await addPlayer({role: 'Police', lootWorth: game.city.cityGrid[x][y].lootWorth, robbersCaught: game.city.cityGrid[x][y].robbersCaught} )
           }
         }
       }
