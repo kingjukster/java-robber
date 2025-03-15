@@ -3,64 +3,49 @@ const { getConnection } = require("./database");
 const oracledb = require('oracledb');
 
 
-async function addGame(total_turns, winner) {
+async function addGame({ turnCount, winner }) {
   const connection = await getConnection();
   if (!connection) return;
 
   try {
-      // Insert the row
-        search = `INSERT INTO GameStats (total_turns, winner) VALUES (:total_turns, :winner)`;
-        const binds = {
-          total_turns: total_turns,
-          winner: winner
-        };
-        await connection.execute(search, binds, { autoCommit: true });
-      /*
-      // Retrieve the generated game_id
-      const search = `SELECT game_id FROM GameStats WHERE game_id = (SELECT MAX(game_id) FROM GameStats)`;
-      const result = await connection.execute(search, [], { resultSet: true });
-
-      // Fetch the first row from the result set
-      const row = await result.resultSet.getRow();
-
-      if (row) {
-        const gameId = row[0];  // game_id is the first column of the row
-        console.log("Inserted gameId:", gameId);
-        return gameId;
-      } else {
-        console.error("No game_id found.");
-      } */
-
+    const sql = `INSERT INTO GameStats (total_turns, winner) VALUES (:total_turns, :winner)`;
+    // Use plain values or wrap them in an object with a "val" property if needed.
+    const binds = {
+      total_turns: { val: turnCount },
+      winner: { val: winner }
+    };
+    await connection.execute(sql, binds, { autoCommit: true });
   } catch (err) {
-      console.error("Error inserting game:", err);
+    console.error("Error inserting game:", err);
   } finally {
-      if (connection) await connection.close();
+    if (connection) await connection.close();
   }
 }
 
 
-async function addPlayer(gameId, role, jewels = 0, arrests = 0) {
-    const connection = await getConnection();
-    if (!connection) return;
-    console.log(role, jewels, arrests);
-    try {
-      search =
-        `INSERT INTO PlayerStats (game_id, role, jewels_stolen, arrests_made) 
-         VALUES ((SELECT MAX(game_id) FROM GameStats), :role, :jewels, :arrests)`;
-        const binds =  {
-          role: role,
-          jewels: jewels,
-          arrests: arrests
-        };
-        await connection.execute(search, binds, { autoCommit: true });
-  
-      console.log(`Player added to game ${gameId} as ${role}`);
-    } catch (err) {
-      console.error("Error adding player:", err);
-    } finally {
-      await connection.close();
-    }
+async function addPlayer({ role, lootWorth = 0, robbersCaught = 0 }) {
+  const connection = await getConnection();
+  if (!connection) return;
+  console.log(role, lootWorth, robbersCaught);
+  try {
+    const sql = `
+      INSERT INTO PlayerStats (game_id, role, jewels_stolen, arrests_made) 
+      VALUES ((SELECT MAX(game_id) FROM GameStats), :role, :jewels, :arrests)
+    `;
+    const binds = {
+      role: { val: role },
+      jewels: { val: lootWorth },
+      arrests: { val: robbersCaught }
+    };
+    await connection.execute(sql, binds, { autoCommit: true });
+    console.log(`Player added with role ${role}`);
+  } catch (err) {
+    console.error("Error adding player:", err);
+  } finally {
+    await connection.close();
   }
+}
+
 
 async function logTurn(gameId, turnNum, robbers, police, jewelsLeft) {
     const connection = await getConnection();
@@ -88,5 +73,31 @@ async function logTurn(gameId, turnNum, robbers, police, jewelsLeft) {
     }
     }
 
-module.exports = { addGame, addPlayer, logTurn };
+async function getStats() {
+  const connection = await getConnection();
+  if (!connection) return;
+
+  try {
+    // For example, fetching game stats and player stats
+    const gameResult = await connection.execute(
+      `SELECT * FROM GameStats ORDER BY game_id DESC`
+    );
+    const playerResult = await connection.execute(
+      `SELECT * FROM PlayerStats ORDER BY game_id DESC`
+    );
+
+    return {
+      games: gameResult.rows,
+      players: playerResult.rows
+    };
+  } catch (err) {
+    console.error("Error querying stats:", err);
+    throw err;
+  } finally {
+    if (connection) await connection.close();
+  }
+}
+
+module.exports = { addGame, addPlayer, logTurn, getStats };
+
 

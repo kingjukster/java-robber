@@ -1,3 +1,5 @@
+const { Jewel } = require('./jewel');
+
 function getRobberClass() {
     return require('./robber').Robber;
 }
@@ -15,6 +17,7 @@ class Police {
         const Robber = getRobberClass();  // Import here to break the circular dependency
         if (robber instanceof Robber) {
             this.lootWorth += robber.totalLootWorth;
+            robber.totalLootWorth = 0;
             this.robbersCaught++;
             robber.isActive = false;
         }
@@ -48,21 +51,24 @@ class Police {
     
         // If no robbers were found, make a random move
         if (validDirections.length > 0) {
-            // Make a random move from valid directions
-            newCoord = validDirections[Math.floor(Math.random() * validDirections.length)];
-    
-            // Ensure newCoord is within bounds
-            if (newCoord && newCoord.x >= 0 && newCoord.x < 10 && newCoord.y >= 0 && newCoord.y < 10) {
-                // Check if the new position is valid
-                if (city.cityGrid[this.policeCoord.x] && city.cityGrid[this.policeCoord.x][this.policeCoord.y]) {
-                    city.cityGrid[this.policeCoord.x][this.policeCoord.y] = null;  // Clear the police's original position
-                }
-    
-                this.policeCoord = newCoord;  // Update police position
-                city.cityGrid[newCoord.x][newCoord.y] = this;  // Place police at new position
+            const newCoord = validDirections[Math.floor(Math.random() * validDirections.length)];
+            const targetCell = city.cityGrid[newCoord.x][newCoord.y];
+      
+            // If there's a jewel at the new position, pick it up
+            if (targetCell instanceof Jewel) {
+              this.lootWorth += targetCell.jewelValue;
+              city.jewelCount--;
+              // Remove the jewel from the grid
+              city.cityGrid[newCoord.x][newCoord.y] = null;
+            }
+      
+            // Move the police
+            city.cityGrid[this.policeCoord.x][this.policeCoord.y] = null;
+            city.cityGrid[newCoord.x][newCoord.y] = this;
+            this.policeCoord = newCoord;
             }
         }
     }
-}
+
 
 module.exports = { Police }

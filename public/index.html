@@ -2,18 +2,77 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Cops vs Robbers Game</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Cops vs Robbers Game</h1>
-  <button id="start-game" onclick="startGame()">Start Game</button>
+  <!-- Title screen (centered) -->
+  <div id="title-screen">
+    <h1>Cops vs Robbers Game</h1>
+    <button id="start-game" onclick="startGame()">Start Game</button>
+  </div>
 
+  <!-- Main container for the game, hidden until start -->
   <div id="game-container" style="display: none;">
-    <div id="grid"></div>
-    <button id="next-turn-btn" onclick="nextTurn()">Next Turn</button>
-    <button id="new-game-btn" onclick="newGame()">New Game</button>
+    <div id="main-content">
+      <!-- Board & Stats side by side -->
+      <div id="board-and-stats">
+        
+        <!-- A column: board on top, buttons underneath, left-aligned -->
+        <div id="board-with-buttons">
+          <div id="game-board">
+            <div id="grid"></div>
+          </div>
+          <!-- Buttons under the board, left-aligned -->
+          <div id="controls">
+            <button id="next-turn-btn" onclick="nextTurn()">Next Turn</button>
+            <button id="new-game-btn" onclick="newGame()">New Game</button>
+          </div>
+        </div>
+
+        <!-- Stats container on the right -->
+        <div id="stats-container">
+          <div id="current-stats" class="stats-panel">
+            <h3>Game Stats</h3>
+            <div class="stat-item">
+              <span class="stat-label">Turn:</span>
+              <span id="stat-turn">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Winner:</span>
+              <span id="stat-winner">In Progress</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Total Robber Loot:</span>
+              <span id="stat-robber-loot">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Robber Goal:</span>
+              <span id="stat-robber-goal">200</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <h4>Robber Loot Progress</h4>
+            <div class="progress-container">
+              <div id="loot-progress" class="progress-bar"></div>
+            </div>
+          </div>
+
+          <div id="player-stats-panel" class="stats-panel">
+            <h3>Player Stats</h3>
+            <div>
+              <h4>Robbers</h4>
+              <ul id="robber-list"></ul>
+            </div>
+            <div>
+              <h4>Police</h4>
+              <ul id="police-list"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="script.js"></script>
