@@ -40,6 +40,7 @@ async function nextTurn() {
 async function newGame() {
   // Re-enable next-turn button
   document.getElementById('next-turn-btn').disabled = false;
+  document.getElementById('simulate-btn').disabled = false;
   // Hide title screen if it’s visible
   document.getElementById('title-screen').style.display = 'none';
   // Show the game container
@@ -147,3 +148,67 @@ function displayPlayerStats(stats) {
     policeList.appendChild(li);
   });
 }
+
+async function simulateGame() {
+  // Disable the Simulate button so we don’t double-click
+  document.getElementById('simulate-btn').disabled = true;
+  
+  // We can loop until the game ends
+  let gameOver = false;
+  
+  while (!gameOver) {
+    try {
+      // Call next-turn
+      const response = await fetch('/next-turn');
+      const data = await response.json();
+      
+      if (data.cityGrid) {
+        populateGrid(data.cityGrid);
+      }
+      fetchCurrentStats();
+      
+      if (data.message) {
+        // Game is over
+        alert(data.message);
+        document.getElementById('next-turn-btn').disabled = true;
+        gameOver = true;
+      } else {
+        // Optional: small delay so the user sees changes
+        await new Promise(resolve => setTimeout(resolve, 300)); 
+      }
+      
+    } catch (error) {
+      console.error('Error simulating game:', error);
+      break;
+    }
+  }
+}
+
+function simulateMultipleGames() {
+  const userInput = prompt("Enter the number of games to simulate:");
+  const numGames = parseInt(userInput, 10);
+
+  if (isNaN(numGames) || numGames <= 0) {
+    alert("Invalid number of games.");
+    return;
+  }
+
+  // Call the server route
+  fetch(`/simulate-multiple?numGames=${numGames}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        alert("Error: " + data.error);
+      } else {
+        alert(data.message);
+        // Optionally, refresh stats or do something else
+        // fetchCurrentStats(); 
+      }
+    })
+    .catch(err => {
+      console.error("Error simulating multiple games:", err);
+      alert("Failed to simulate games.");
+    });
+}
+
+

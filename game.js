@@ -13,8 +13,8 @@ class Game {
         this.maxPolice = 1;
         this.robberGoal = 200;
         this.robbers = [
-            new Robber(1, { x: 0, y: 0 }, "ordinary"),
-            new Robber(2, { x: 0, y: 0 }, "ordinary"),
+            new Robber(1, { x: 0, y: 0 }, "greedy"),
+            new Robber(2, { x: 0, y: 0 }, "greedy"),
             new Robber(3, { x: 0, y: 0 }, "ordinary"),
             new Robber(4, { x: 0, y: 0 }, "ordinary")
         ];
@@ -96,7 +96,7 @@ class Game {
     }
     
     
-
+    //junk code
     start() {
         this.populateGrid();
         while (this.turns < this.maxTurns && !this.isGameOver()) {

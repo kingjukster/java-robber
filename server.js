@@ -3,7 +3,7 @@ const { Game } = require('./game');
 const { Jewel } = require('./jewel');
 const { Robber } = require('./robber');
 const { Police } = require('./police');
-const { addGame, addPlayer } = require('./gameService');
+const { addGame, addPlayer, getAllTimeStats, getTopRobbers, getTopPolice } = require('./gameService');
 // If you need 'logTurn' or 'getStats', import them too
 // const { logTurn, getStats } = require('./gameService');
 
@@ -52,7 +52,7 @@ app.get('/next-turn', async (req, res) => {
       // Save final stats to DB
       await addGame({
         turnCount: game.turns,
-        winner: gameOverMessage === "Robber wins" ? "Robber" : "Police"
+        winner: gameOverMessage === "Robbers Win!" ? "Robber" : "Police"
       });
 
       // Save each Robber/Police to DB
@@ -126,7 +126,6 @@ app.get('/current-stats', (req, res) => {
   const robberGoal = game.robberGoal || 200;
 
   const gameOverMessage = game.isGameOver(); // e.g. "Robbers Win!" or "Police Win!" or false
-
   let winner;
   if (gameOverMessage === "Robbers Win!") {
     winner = "Robbers";
@@ -159,6 +158,74 @@ app.get('/current-stats', (req, res) => {
     police: policeStats
   });
 });
+
+
+
+app.get('/all-time-stats', async (req, res) => {
+  try {
+    const stats = await getAllTimeStats();
+    const topRobbers = await getTopRobbers();
+    const topPolice = await getTopPolice();
+
+    if (!stats) {
+      return res.status(500).json({ error: "Could not retrieve stats." });
+    }
+
+    // Return aggregated stats plus top 10 lists
+    res.json({
+      ...stats,
+      topRobbers, // array of rows
+      topPolice
+    });
+  } catch (err) {
+    console.error("Error retrieving all-time stats:", err);
+    res.status(500).json({ error: "Failed to fetch stats." });
+  }
+});
+
+app.get('/simulate-multiple', async (req, res) => {
+  // Number of games to simulate, default to 1 if not specified
+  const numGames = parseInt(req.query.numGames, 10) || 1;
+  console.log(`Simulating ${numGames} games...`);
+
+  try {
+    for (let i = 0; i < numGames; i++) {
+      // 1) Create a new Game
+      const simGame = new Game();
+      simGame.populateGrid();
+      
+      // 2) Play until it ends
+      while (!simGame.isGameOver()) {
+        simGame.playTurn();
+      }
+      
+      // 3) Get the final gameOverMessage and store stats in DB
+      const gameOverMessage = simGame.isGameOver();
+      const winner = (gameOverMessage === "Robbers Win!") ? "Robbers" : "Police";
+      
+      // Insert game record
+      await addGame({ turnCount: simGame.turns, winner });
+      
+      // Insert each robber/police
+      for (let x = 0; x < 10; x++) {
+        for (let y = 0; y < 10; y++) {
+          const cell = simGame.city.cityGrid[x][y];
+          if (cell instanceof Robber) {
+            await addPlayer({ role: 'Robber', lootWorth: cell.totalLootWorth });
+          } else if (cell instanceof Police) {
+            await addPlayer({ role: 'Police', lootWorth: cell.lootWorth, robbersCaught: cell.robbersCaught });
+          }
+        }
+      }
+    }
+
+    return res.json({ message: `Successfully simulated ${numGames} games.` });
+  } catch (err) {
+    console.error("Error simulating multiple games:", err);
+    return res.status(500).json({ error: "Failed to simulate multiple games." });
+  }
+});
+
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
