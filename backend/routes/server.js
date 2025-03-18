@@ -239,6 +239,11 @@ app.get("/simulate-multiple", async (req, res) => {
   }
 });
 
+app.get('/', (req, res) => {
+  res.redirect('../../frontend/index.html');  // res.sendFile('index.html')
+});
+
+
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
