@@ -1,10 +1,12 @@
 {
   "name": "java-robber",
   "version": "1.0.0",
+  "description": "",
   "main": "class.js",
   "scripts": {
-    "test": "echo \"No tests specified\"",
-    "start": "node server.js"
+    "start": "node ./backend/routes/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",
@@ -17,9 +19,14 @@
     "url": "https://github.com/kingjukster/java-robber/issues"
   },
   "homepage": "https://github.com/kingjukster/java-robber#readme",
-  "description": "",
   "dependencies": {
     "express": "^4.21.2",
     "oracledb": "^6.7.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "eslint": "^9.22.0",
+    "globals": "^16.0.0",
+    "prettier": "^3.5.3"
   }
 }
