@@ -1,0 +1,24 @@
+{
+  "name": "java-robber",
+  "version": "1.0.0",
+  "main": "class.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kingjukster/java-robber.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kingjukster/java-robber/issues"
+  },
+  "homepage": "https://github.com/kingjukster/java-robber#readme",
+  "description": "",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
