@@ -11,9 +11,10 @@ class Game {
         this.maxTurns = 30;
         this.maxRobbers = 4;
         this.maxPolice = 1;
+        this.robberGoal = 200;
         this.robbers = [
-            new Robber(1, { x: 0, y: 0 }, "ordinary"),
-            new Robber(2, { x: 0, y: 0 }, "ordinary"),
+            new Robber(1, { x: 0, y: 0 }, "greedy"),
+            new Robber(2, { x: 0, y: 0 }, "greedy"),
             new Robber(3, { x: 0, y: 0 }, "ordinary"),
             new Robber(4, { x: 0, y: 0 }, "ordinary")
         ];
@@ -62,8 +63,6 @@ class Game {
     }
 
     playTurn() {
-        console.log(`Turn ${this.turns + 1}`);
-
         for (const officer of this.police) {
             officer.move(this.city);
         }
@@ -75,15 +74,13 @@ class Game {
         }
 
         this.turns++;
-        console.log(`Jewels remaining: ${this.city.jewelCount}`);
-        this.city.printGrid();
     }
 
     isGameOver() {
         const robbers = this.city.cityGrid.flat().filter(cell => cell instanceof Robber);
         const totalLoot = robbers.reduce((sum, r) => sum + r.totalLootWorth, 0);
     
-        if (totalLoot >= 200) {
+        if (totalLoot >= this.robberGoal) {
             console.log("Robbers win by collecting enough loot!");
             return "Robbers Win!";
         }
@@ -91,11 +88,15 @@ class Game {
             console.log("Police win by catching all robbers!");
             return "Police Win!";
         }
+        if (this.maxTurns == this.turns) {
+            console.log("Police win by turn limit!");
+            return "Police Win!";
+        }
         return false; // Game continues
     }
     
     
-
+    //junk code
     start() {
         this.populateGrid();
         while (this.turns < this.maxTurns && !this.isGameOver()) {
