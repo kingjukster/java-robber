@@ -1,5 +1,3 @@
-Below is a **sample README.md** tailored for your **“Cops vs Robbers”** (a.k.a. **“java-robber”**) project. Feel free to adjust wording, add images or GIFs, and remove sections you don’t need.
-
 ---
 
 # Cops vs Robbers (java-robber)
