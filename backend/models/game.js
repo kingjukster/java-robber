@@ -84,21 +84,22 @@ class Game {
     const totalLoot = robbers.reduce((sum, r) => sum + r.totalLootWorth, 0);
 
     if (totalLoot >= this.robberGoal) {
-      console.log("Robbers win by collecting enough loot!");
+      //console.log("Robbers win by collecting enough loot!");
       return "Robbers Win!";
     }
     if (robbers.every((r) => !r.isActive)) {
-      console.log("Police win by catching all robbers!");
+      //console.log("Police win by catching all robbers!");
       return "Police Win!";
     }
     if (this.maxTurns == this.turns) {
-      console.log("Police win by turn limit!");
+      //console.log("Police win by turn limit!");
       return "Police Win!";
     }
     return false; // Game continues
   }
 
   //junk code
+  /*
   start() {
     this.populateGrid();
     while (this.turns < this.maxTurns && !this.isGameOver()) {
@@ -112,6 +113,7 @@ class Game {
       console.log("Police win by catching all robbers!");
     }
   }
+*/
 }
 
 module.exports = { Game };
