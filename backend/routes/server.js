@@ -10,58 +10,54 @@ const {
   getTopRobbers,
   getTopPolice,
 } = require("../services/gameService");
-// If you need 'logTurn' or 'getStats', import them too
-// const { logTurn, getStats } = require('./gameService');
+const statsRoutes = require("./simstats");
+const { getDynamicRobberGoal } = require("../services/analyticsService");
 
 const app = express();
 const port = 3000;
 
-// Serve static files from 'public' or your chosen directory
+app.use("/api", statsRoutes);
 app.use(express.static("public"));
 
 let game;
 
-// Start Game
-app.get("/start-game", (req, res) => {
+app.get("/start-game", async (req, res) => {
+  const dynamicGoal = await getDynamicRobberGoal();
   game = new Game();
-  game.populateGrid(); // Initialize the grid
+  game.robberGoal = dynamicGoal;
+  game.populateGrid();
 
-  // Convert the city grid to a simple array of characters for the client
   const cityGrid = game.city.cityGrid.map((row) =>
     row.map((cell) => {
       if (cell instanceof Jewel) return "J";
       if (cell instanceof Robber) return "R";
       if (cell instanceof Police) return "P";
       return ".";
-    }),
+    })
   );
 
   res.json({ cityGrid });
 });
 
-// Next Turn
 app.get("/next-turn", async (req, res) => {
-  // SAFETY CHECK: If there's no game yet, return an error
   if (!game) {
     return res.status(400).json({
       error: "No game in progress. Please start a new game first.",
     });
   }
 
-  // Advance the game by one turn
   game.playTurn();
   const gameOverMessage = game.isGameOver();
 
-  // If the game ended this turn...
   if (gameOverMessage) {
     try {
-      // Save final stats to DB
       await addGame({
         turnCount: game.turns,
-        winner: gameOverMessage === "Robbers Win!" ? "Robber" : "Police",
+        robberGoal: game.robberGoal,
+        totalJewelValue: game.city.totalJewelValue || 0,
+        winner: gameOverMessage === "Robbers Win!" ? "Robbers" : "Police",
       });
 
-      // Save each Robber/Police to DB
       for (let x = 0; x < 10; x++) {
         for (let y = 0; y < 10; y++) {
           const cell = game.city.cityGrid[x][y];
@@ -75,6 +71,7 @@ app.get("/next-turn", async (req, res) => {
               role: "Police",
               lootWorth: cell.lootWorth,
               robbersCaught: cell.robbersCaught,
+              
             });
           }
         }
@@ -84,29 +81,27 @@ app.get("/next-turn", async (req, res) => {
       return res.status(500).json({ error: "Failed to save game stats." });
     }
 
-    // Return the game-over message, no grid needed
     return res.json({
       message: gameOverMessage,
       cityGrid: null,
     });
   }
 
-  // Otherwise, send the updated grid
   const cityGrid = game.city.cityGrid.map((row) =>
     row.map((cell) => {
       if (cell instanceof Jewel) return "J";
       if (cell instanceof Robber) return "R";
       if (cell instanceof Police) return "P";
       return ".";
-    }),
+    })
   );
 
   res.json({ cityGrid });
 });
 
-// New Game
-app.get("/new-game", (req, res) => {
+app.get("/new-game", async (req, res) => {
   game = new Game();
+  game.robberGoal = await getDynamicRobberGoal();
   game.populateGrid();
 
   const cityGrid = game.city.cityGrid.map((row) =>
@@ -115,33 +110,28 @@ app.get("/new-game", (req, res) => {
       if (cell instanceof Robber) return "R";
       if (cell instanceof Police) return "P";
       return ".";
-    }),
+    })
   );
   res.json({ cityGrid });
 });
 
-// Current Stats
 app.get("/current-stats", (req, res) => {
-  // If no game or game is over, return active = false
   if (!game) {
     return res.json({ active: false });
   }
 
-  // Summarize robber data
   const totalRobberLoot = game.robbers.reduce(
     (sum, r) => sum + r.totalLootWorth,
-    0,
+    0
   );
   const robberGoal = game.robberGoal || 200;
 
-  const gameOverMessage = game.isGameOver(); // e.g. "Robbers Win!" or "Police Win!" or false
-  let winner;
+  const gameOverMessage = game.isGameOver();
+  let winner = "In Progress";
   if (gameOverMessage === "Robbers Win!") {
     winner = "Robbers";
   } else if (gameOverMessage === "Police Win!") {
     winner = "Police";
-  } else {
-    winner = "In Progress";
   }
 
   const robberStats = game.robbers.map((r) => ({
@@ -178,10 +168,9 @@ app.get("/all-time-stats", async (req, res) => {
       return res.status(500).json({ error: "Could not retrieve stats." });
     }
 
-    // Return aggregated stats plus top 10 lists
     res.json({
       ...stats,
-      topRobbers, // array of rows
+      topRobbers,
       topPolice,
     });
   } catch (err) {
@@ -191,39 +180,36 @@ app.get("/all-time-stats", async (req, res) => {
 });
 
 app.get("/simulate-multiple", async (req, res) => {
-  // Number of games to simulate, default to 1 if not specified
   const numGames = parseInt(req.query.numGames, 10) || 1;
   console.log(`Simulating ${numGames} games...`);
 
   try {
     for (let i = 0; i < numGames; i++) {
-      // 1) Create a new Game
-      const simGame = new Game();
+      const simGame = new Game()
+      simGame.robberGoal = await getDynamicRobberGoal();;
       simGame.populateGrid();
 
-      // 2) Play until it ends
       while (!simGame.isGameOver()) {
         simGame.playTurn();
       }
 
-      // 3) Get the final gameOverMessage and store stats in DB
       const gameOverMessage = simGame.isGameOver();
       const winner = gameOverMessage === "Robbers Win!" ? "Robbers" : "Police";
 
-      // Insert game record
-      await addGame({ turnCount: simGame.turns, winner });
+      await addGame({
+        turnCount: simGame.turns,
+        robberGoal: simGame.robberGoal,
+        totalJewelValue: simGame.city.totalJewelValue || 0,
+        winner,
+      });
 
-      // Insert each robber/police
       for (let x = 0; x < 10; x++) {
         for (let y = 0; y < 10; y++) {
           const cell = simGame.city.cityGrid[x][y];
           if (cell instanceof Robber) {
             await addPlayer({ role: "Robber", lootWorth: cell.totalLootWorth });
           } else if (cell instanceof Police) {
-            await addPlayer({
-              role: "Police",
-              lootWorth: cell.lootWorth,
-              robbersCaught: cell.robbersCaught,
+            await addPlayer({role: "Police", lootWorth: cell.lootWorth, robbersCaught: cell.robbersCaught,
             });
           }
         }
@@ -233,16 +219,13 @@ app.get("/simulate-multiple", async (req, res) => {
     return res.json({ message: `Successfully simulated ${numGames} games.` });
   } catch (err) {
     console.error("Error simulating multiple games:", err);
-    return res
-      .status(500)
-      .json({ error: "Failed to simulate multiple games." });
+    return res.status(500).json({ error: "Failed to simulate multiple games." });
   }
 });
 
 app.get('/', (req, res) => {
-  res.redirect('../../frontend/index.html');  // res.sendFile('index.html')
+  res.redirect('../../frontend/index.html');
 });
-
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

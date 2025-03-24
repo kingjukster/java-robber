@@ -46,38 +46,33 @@ async function fetchAllTimeStats() {
     `;
     policeTableBody.appendChild(policeRow);
 
-    // 4) Populate the Top 10 Robbers table
-    const topRobbersTableBody = document.querySelector(
-      "#top-robbers-table tbody",
-    );
-    topRobbersTableBody.innerHTML = "";
-    // stats.topRobbers might be an array of arrays like [ [player_id, jewels_stolen, arrests_made], ... ]
-    stats.topRobbers.forEach((row) => {
-      const [playerId, jewelsStolen, arrestsMade] = row;
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-         <td>${playerId}</td>
-         <td>${jewelsStolen}</td>
-         <td>${arrestsMade}</td>
-       `;
-      topRobbersTableBody.appendChild(tr);
-    });
+  // 4) Populate the Top 10 Robbers table
+  const topRobbersTableBody = document.querySelector("#top-robbers-table tbody");
+  topRobbersTableBody.innerHTML = "";
+  stats.topRobbers.forEach((row) => {
+    const [playerId, jewelsStolen] = row;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${playerId}</td>
+      <td>${jewelsStolen}</td>
+    `;
+    topRobbersTableBody.appendChild(tr);
+  });
 
-    // 5) Populate the Top 10 Police table
-    const topPoliceTableBody = document.querySelector(
-      "#top-police-table tbody",
-    );
-    topPoliceTableBody.innerHTML = "";
-    stats.topPolice.forEach((row) => {
-      const [playerId, jewelsStolen, arrestsMade] = row;
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-         <td>${playerId}</td>
-         <td>${jewelsStolen}</td>
-         <td>${arrestsMade}</td>
-       `;
-      topPoliceTableBody.appendChild(tr);
-    });
+  // 5) Populate the Top 10 Police table
+  const topPoliceTableBody = document.querySelector("#top-police-table tbody");
+  topPoliceTableBody.innerHTML = "";
+  stats.topPolice.forEach((row) => {
+    const [playerId, jewelsRecovered, arrestsMade] = row;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${playerId}</td>
+      <td>${jewelsRecovered}</td>
+      <td>${arrestsMade}</td>
+    `;
+    topPoliceTableBody.appendChild(tr);
+  });
+
   } catch (error) {
     console.error("Error fetching all-time stats:", error);
   }

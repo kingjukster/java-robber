@@ -16,6 +16,10 @@ class Robber {
     return this.lootBag.findIndex((item) => item === null);
   }
 
+  isBagFull() {
+    return this.checkBag() === -1;
+  }
+
   pickUpLoot(jewel, city) {
     const nextSpot = this.checkBag();
     if (nextSpot !== -1) {
@@ -26,47 +30,76 @@ class Robber {
     }
   }
 
-  move(city) {
-    const validDirections = city.getValidDirections(this.robberCoord);
-    let newCoord = null;
+  findPathToNearestJewel(city) {
+    const grid = city.cityGrid;
+    const visited = Array.from({ length: 10 }, () => Array(10).fill(false));
+    const queue = [{ x: this.robberCoord.x, y: this.robberCoord.y, path: [] }];
+    visited[this.robberCoord.x][this.robberCoord.y] = true;
 
-    if (this.robberType == "greedy") {
-      for (const dir of validDirections) {
-        if (city.cityGrid[dir.x][dir.y] instanceof Jewel) {
-          this.pickUpLoot(city.cityGrid[dir.x][dir.y], city);
-          city.cityGrid[dir.x][dir.y] = this;
-          if (
-            city.cityGrid[this.robberCoord.x][this.robberCoord.y] !== undefined
-          ) {
-            city.cityGrid[this.robberCoord.x][this.robberCoord.y] = null;
-          }
-          this.robberCoord = dir;
-          return;
+    while (queue.length > 0) {
+      const current = queue.shift();
+      const { x, y, path } = current;
+      const cell = grid[x][y];
+
+      if (cell instanceof Jewel) {
+        return path;
+      }
+
+      const directions = city.getValidDirections({ x, y });
+      for (const dir of directions) {
+        const cell = grid[dir.x][dir.y];
+        if (!visited[dir.x][dir.y] && !(cell instanceof Police)) {
+          visited[dir.x][dir.y] = true;
+          queue.push({ x: dir.x, y: dir.y, path: [...path, dir] });
         }
       }
     }
 
-    if (validDirections.length > 0) {
-      newCoord =
-        validDirections[Math.floor(Math.random() * validDirections.length)];
-      let targetCell = city.cityGrid[newCoord.x][newCoord.y];
-      if (targetCell instanceof Jewel) {
-        this.pickUpLoot(targetCell, city);
-        city.cityGrid[this.robberCoord.x][this.robberCoord.y] = null;
-        this.robberCoord = newCoord;
-        city.cityGrid[newCoord.x][newCoord.y] = this;
+    return [];
+  }
+
+  move(city) {
+    if (!this.isActive) return;
+
+    let movesLeft = 1;
+    let justPickedUpJewel = false;
+
+    while (movesLeft > 0) {
+      let nextCoord = null;
+
+      if (!this.isBagFull()) {
+        const pathToJewel = this.findPathToNearestJewel(city);
+        if (pathToJewel.length > 0) {
+          nextCoord = pathToJewel[0]; // Step toward nearest jewel
+        }
       }
-      if (targetCell instanceof Police) {
-        targetCell.arrestRobber(
-          city.cityGrid[this.robberCoord.x][this.robberCoord.y],
-        );
-        city.cityGrid[this.robberCoord.x][this.robberCoord.y] = targetCell;
-        targetCell = null;
-      } else {
-        city.cityGrid[this.robberCoord.x][this.robberCoord.y] = null;
-        this.robberCoord = newCoord;
-        city.cityGrid[newCoord.x][newCoord.y] = this;
+
+      // If bag is full or no jewel found, avoid police and move randomly
+      if (!nextCoord) {
+        const valid = city.getValidDirections(this.robberCoord);
+        const safe = valid.filter((c) => {
+          const cell = city.cityGrid[c.x][c.y];
+          return !(cell instanceof Police) && (cell === null || cell instanceof Jewel);
+        });
+
+        if (safe.length === 0) return; // Stuck
+
+        nextCoord = safe[Math.floor(Math.random() * safe.length)];
       }
+
+      const target = city.cityGrid[nextCoord.x][nextCoord.y];
+      const pickedUpJewel = target instanceof Jewel && this.pickUpLoot(target, city);
+
+      city.cityGrid[this.robberCoord.x][this.robberCoord.y] = null;
+      city.cityGrid[nextCoord.x][nextCoord.y] = this;
+      this.robberCoord = { ...nextCoord };
+
+      if (this.robberType === "greedy" && pickedUpJewel && !justPickedUpJewel) {
+        movesLeft++; // bonus move
+        justPickedUpJewel = true;
+      }
+
+      movesLeft--;
     }
   }
 }

@@ -5,7 +5,8 @@
   "main": "class.js",
   "scripts": {
     "start": "node ./backend/routes/server.js",
-    "test": "echo \"Error: no test specified\"",
+    "test": "mocha test/unit_test/**/*.test.js"
+,
     "lint": "eslint ."
   },
   "repository": {
@@ -25,8 +26,11 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "chai": "^5.2.0",
     "eslint": "^9.22.0",
     "globals": "^16.0.0",
-    "prettier": "^3.5.3"
+    "mocha": "^11.1.0",
+    "prettier": "^3.5.3",
+    "sinon": "^19.0.4"
   }
 }
