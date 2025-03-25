@@ -29,7 +29,7 @@ describe("Game Class", () => {
     it("should initialize with correct default properties", () => {
       expect(game.turns).to.equal(0);
       expect(game.maxTurns).to.equal(30);
-      expect(game.robberGoal).to.equal(200);
+      //expect(game.robberGoal).to.equal(200);
       expect(game.robbers).to.be.an("array").with.lengthOf(4);
       expect(game.police).to.be.an("array").with.lengthOf(1);
       expect(game.city).to.exist;

@@ -95,4 +95,27 @@ describe("City Class", () => {
       expect(gridString).to.include(".");
     });
   });
+
+  describe("calculateTotalJewelValue", () => {
+    it("should correctly sum the value of 47 jewels placed based on coordinate logic", () => {
+      const city = new City();
+      const placed = new Set();
+      let expectedTotal = 0;
+
+      while (placed.size < 47) {
+        const x = Math.floor(Math.random() * 10);
+        const y = Math.floor(Math.random() * 10);
+        const key = `${x},${y}`;
+        if (placed.has(key)) continue;
+
+        const jewel = new Jewel({ x, y });
+        city.cityGrid[x][y] = jewel;
+        expectedTotal += jewel.jewelValue;
+        placed.add(key);
+      }
+
+      const actualTotal = city.calculateTotalJewelValue();
+      expect(actualTotal).to.equal(expectedTotal);
+    });
+  });
 });

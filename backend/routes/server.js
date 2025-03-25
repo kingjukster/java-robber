@@ -199,7 +199,7 @@ app.get("/simulate-multiple", async (req, res) => {
       await addGame({
         turnCount: simGame.turns,
         robberGoal: simGame.robberGoal,
-        totalJewelValue: simGame.city.totalJewelValue || 0,
+        totalJewelValue: simGame.city.totalJewelValue|| 0,
         winner,
       });
 

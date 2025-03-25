@@ -38,7 +38,7 @@ async function addPlayer({ role, lootWorth = 0, robbersCaught = 0 }) {
     } else if (role === "Police") {
       const sql = `
         INSERT INTO PoliceStats (game_id, jewels_recovered, arrests_made)
-        VALUES ((SELECT MAX(game_id) FROM GameStats), :arrests, :jewels)
+        VALUES ((SELECT MAX(game_id) FROM GameStats), :jewels, :arrests)
       `;
       await connection.execute(
         sql,

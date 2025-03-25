@@ -5,19 +5,29 @@ async function getDynamicRobberGoal() {
   if (!connection) return 340; // fallback default
 
   try {
-    const result = await connection.execute(`
-      SELECT AVG(total_jewel_value)
+    // Get average jewel value
+    const jewelResult = await connection.execute(`
+      SELECT AVG(total_jewel_value) FROM GameStats
+    `);
+    const averageValue = jewelResult.rows[0][0];
+
+    // Get robber win rate
+    const winRateResult = await connection.execute(`
+      SELECT AVG(CASE WHEN winner = 'Robbers' THEN 1 ELSE 0 END) AS win_rate
       FROM GameStats
     `);
-    const averageValue = result.rows[0][0];
+    const winRate = winRateResult.rows[0][0];
 
-    if (!averageValue) return 340;
+    if (!averageValue || winRate === null) return 340;
 
-    // Adjust the goal based on average — use 75% as a baseline
-    const goal = Math.round(averageValue * 0.75);
+    // Base goal from 85% of jewel value
+    let goal = averageValue * 0.85;
 
-    // Clamp between 250–375 (or whatever bounds make sense)
-    return Math.min(Math.max(goal, 250), 375);
+    // Adjust based on win rate (ideal is 50%, shift goal ±20)
+    goal += (winRate - 0.5) * 100;
+
+    // Clamp range between 250 and 375
+    return Math.min(Math.max(Math.round(goal), 250), 375);
   } catch (err) {
     console.error("Failed to calculate dynamic goal:", err);
     return 340;

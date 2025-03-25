@@ -8,6 +8,7 @@ class City {
     this.cityGrid = Array.from({ length: 10 }, () => Array(10).fill(null));
     this.maxJewels = 47;
     this.jewelCount = this.maxJewels;
+    this.totalJewelValue = this.calculateTotalJewelValue()
   }
 
   printGrid() {
@@ -43,6 +44,20 @@ class City {
       .map((dir) => ({ x: coord.x + dir.x, y: coord.y + dir.y }))
       .filter((pos) => pos.x >= 0 && pos.x < 10 && pos.y >= 0 && pos.y < 10);
   }
+
+  calculateTotalJewelValue() {
+    let total = 0;
+    for (let i = 0; i < this.cityGrid.length; i++) {
+      for (let j = 0; j < this.cityGrid[i].length; j++) {
+        const cell = this.cityGrid[i][j];
+        if (cell instanceof Jewel) {
+          total += cell.jewelValue;
+        }
+      }
+    }
+    return total;
+  }
+  
 }
 
 module.exports = { City };

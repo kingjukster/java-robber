@@ -33,16 +33,21 @@ router.get("/stats", async (req, res) => {
     const jewelQuery = await connection.execute(`SELECT total_jewel_value FROM GameStats`);
     const jewelValues = jewelQuery.rows.map(row => row[0]);
 
-    const jewelBins = ["220-240", "240-260", "260-280", "280-300", "300-320", "320-340"];
-    const jewelCounts = [0, 0, 0, 0, 0, 0];
+    const jewelBins = [
+      "300-320", "320-340", "340-360", "360-380", "380-400",
+      "400-420", "420-440", "440-460", "460-480", "480-500",
+      "500-520", "520-540", "540-560", "560-580", "580-600",
+      "600-620", "620-640", "640-660", "660-680", "680-700+"
+    ];
+    const jewelCounts = new Array(jewelBins.length).fill(0);
+
     jewelValues.forEach(val => {
-      if (val < 240) jewelCounts[0]++;
-      else if (val < 260) jewelCounts[1]++;
-      else if (val < 280) jewelCounts[2]++;
-      else if (val < 300) jewelCounts[3]++;
-      else if (val < 320) jewelCounts[4]++;
-      else jewelCounts[5]++;
+      if (val >= 300) {
+        const binIndex = Math.min(Math.floor((val - 300) / 20), jewelBins.length - 1);
+        jewelCounts[binIndex]++;
+      }
     });
+
 
     // 4. Close calls (robbers with loot >= 300)
     const closeCallQuery = await connection.execute(`
