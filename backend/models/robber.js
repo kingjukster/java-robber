@@ -93,7 +93,7 @@ class Robber {
       city.cityGrid[this.robberCoord.x][this.robberCoord.y] = null;
       city.cityGrid[nextCoord.x][nextCoord.y] = this;
       this.robberCoord = { ...nextCoord };
-
+      //does nothing 
       if (this.robberType === "greedy" && pickedUpJewel && !justPickedUpJewel) {
         movesLeft++; // bonus move
         justPickedUpJewel = true;
