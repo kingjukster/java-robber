@@ -20,7 +20,7 @@ A grid‐based simulation game where **Robbers** try to collect enough loot (jew
 - **Turn-based simulation** of robbers and police moving around a 10×10 grid.
 - **Jewel pickup** by robbers, and **arrests** by police.
 - **Win conditions**:
-  - Robbers gather enough loot (200 by default).
+  - Robbers gather enough loot (340 by default).
   - All robbers caught.
   - Turn limit reached.
 - **Oracle database** integration for storing:
