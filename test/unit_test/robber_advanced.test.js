@@ -62,16 +62,18 @@ describe("Robber Advanced Movement", () => {
   it("should get a bonus move if greedy and picks up a jewel", () => {
     const city = createDummyCity();
     const robber = new Robber(3, { x: 1, y: 1 }, "greedy");
-    const jewel = new Jewel({ x: 1, y: 2 });
+    const jewel1 = new Jewel({ x: 1, y: 2 });
+    const jewel2 = new Jewel({ x: 1, y: 3 });
     city.cityGrid[1][1] = robber;
-    city.cityGrid[1][2] = jewel;
-  
+    city.cityGrid[1][2] = jewel1;
+    city.cityGrid[1][3] = jewel2;
+
     robber.move(city);
-  
-    const hasLoot = robber.lootBag.some((item) => item instanceof Jewel);
-    expect(hasLoot).to.be.true;
-    expect(city.cityGrid[1][2]).to.not.equal(jewel); // jewel should be removed
-    expect(robber.robberCoord).to.not.deep.equal({ x: 1, y: 1 }); // robber should not be in original spot
+
+    // Should have moved twice and ended on the second jewel
+    expect(robber.robberCoord).to.deep.equal({ x: 1, y: 3 });
+    const count = robber.lootBag.filter((x) => x !== null).length;
+    expect(count).to.equal(2);
   });
   
 
@@ -80,16 +82,20 @@ describe("Robber Advanced Movement", () => {
     const robber = new Robber(4, { x: 1, y: 1 }, "greedy");
     const jewel1 = new Jewel({ x: 1, y: 2 });
     const jewel2 = new Jewel({ x: 1, y: 3 });
+    const jewel3 = new Jewel({ x: 1, y: 4 });
 
     city.cityGrid[1][1] = robber;
     city.cityGrid[1][2] = jewel1;
     city.cityGrid[1][3] = jewel2;
+    city.cityGrid[1][4] = jewel3;
 
     robber.move(city);
 
-    // Should only have picked up ONE jewel this turn
+    // Should have moved only once extra and stopped before the third jewel
+    expect(robber.robberCoord).to.deep.equal({ x: 1, y: 3 });
     const count = robber.lootBag.filter((x) => x !== null).length;
-    expect(count).to.equal(1);
+    expect(count).to.equal(2);
+    expect(city.cityGrid[1][4]).to.equal(jewel3); // third jewel untouched
   });
 
   it("should do nothing if no valid directions exist", () => {

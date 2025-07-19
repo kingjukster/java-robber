@@ -20,7 +20,7 @@ A grid‐based simulation game where **Robbers** try to collect enough loot (jew
 - **Turn-based simulation** of robbers and police moving around a 10×10 grid.
 - **Jewel pickup** by robbers, and **arrests** by police.
 - **Win conditions**:
-  - Robbers gather enough loot (200 by default).
+  - Robbers gather enough loot (340 by default).
   - All robbers caught.
   - Turn limit reached.
 - **Oracle database** integration for storing:
@@ -44,12 +44,14 @@ A grid‐based simulation game where **Robbers** try to collect enough loot (jew
 3. **Set up Oracle DB**:
    - Ensure you have the Oracle Instant Client and the `oracledb` Node driver installed.
    - Create your schema / tables as needed (GameStats, PlayerStats, etc.).
+   - Make sure the database is running and accessible at `127.0.0.1:1521`, or update
+     `DB_CONNECT_STRING` in your `.env` accordingly.
 
 ---
 
 ## Environment Variables
 
-Create a **.env** file in the project root to store your Oracle DB credentials and any other config:
+Copy **.env.example** to **.env** in the project root and adjust the values for your environment:
 
 ```
 DB_USER=system
