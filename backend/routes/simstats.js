@@ -4,6 +4,9 @@ const { getConnection } = require("../../db/database");
 
 router.get("/stats", async (req, res) => {
   const connection = await getConnection();
+  if (!connection) {
+    return res.status(500).json({ error: "Database connection failed" });
+  }
   try {
     // 1. Total games, wins
     const totalGamesQuery = await connection.execute(`SELECT COUNT(*) FROM GameStats`);

@@ -44,6 +44,8 @@ A grid‐based simulation game where **Robbers** try to collect enough loot (jew
 3. **Set up Oracle DB**:
    - Ensure you have the Oracle Instant Client and the `oracledb` Node driver installed.
    - Create your schema / tables as needed (GameStats, PlayerStats, etc.).
+   - Make sure the database is running and accessible at `127.0.0.1:1521`, or update
+     `DB_CONNECT_STRING` in your `.env` accordingly.
 
 ---
 

@@ -61,7 +61,7 @@ class Game {
         }
       }
     }
-    this.city.totalJewelValue = this.city.calculateTotalJewelValue()
+    this.city.totalJewelValue = this.city.calculateTotalJewelValue();
   }
 
   playTurn() {

@@ -1,9 +1,9 @@
 const oracledb = require("oracledb");
 
 const dbConfig = {
-  user: "SYSTEM",
-  password: "42",
-  connectString: "localhost/FREE",
+  user: process.env.DB_USER || "SYSTEM",
+  password: process.env.DB_PASS || "42",
+  connectString: process.env.DB_CONNECT_STRING || "localhost/FREE",
 };
 
 async function getConnection() {

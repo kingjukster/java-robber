@@ -185,7 +185,7 @@ app.get("/simulate-multiple", async (req, res) => {
 
   try {
     for (let i = 0; i < numGames; i++) {
-      const simGame = new Game()
+      const simGame = new Game();
       simGame.robberGoal = await getDynamicRobberGoal();;
       simGame.populateGrid();
 
