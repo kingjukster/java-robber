@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Robber vs Police Analytics</title>
+  <title>Analytics Version 1</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -59,7 +59,7 @@
     }
   </script>
 
-  <h1>Game Statistics Dashboard</h1>
+  <h1>Analytics Dashboard - Version 1</h1>
 
   <div class="chart-container">
     <h2>Robber Win Rate vs Robber Goal</h2>
@@ -76,6 +76,16 @@
     <canvas id="closeCallsChart"></canvas>
   </div>
 
+  <div class="chart-container">
+    <h2>Arrest Count Distribution</h2>
+    <canvas id="arrestDistChart"></canvas>
+  </div>
+
+  <div class="chart-container">
+    <h2>Robber vs Police Performance</h2>
+    <canvas id="performanceChart"></canvas>
+  </div>
+
   <script>
     async function fetchStats() {
       const res = await fetch('/api/stats');
@@ -85,7 +95,6 @@
     async function initCharts() {
       const data = await fetchStats();
 
-      // Robber Win Rate vs Robber Goal
       const winRateCtx = document.getElementById('winRateChart');
       new Chart(winRateCtx, {
         type: 'line',
@@ -113,7 +122,6 @@
         }
       });
 
-      // Jewel Distribution
       const jewelDistCtx = document.getElementById('jewelDistChart');
       new Chart(jewelDistCtx, {
         type: 'bar',
@@ -128,14 +136,11 @@
         options: {
           indexAxis: 'x',
           scales: {
-            y: {
-              beginAtZero: true
-            }
+            y: { beginAtZero: true }
           }
         }
       });
 
-      // Close Calls
       const closeCallsCtx = document.getElementById('closeCallsChart');
       new Chart(closeCallsCtx, {
         type: 'bar',
@@ -149,11 +154,41 @@
         },
         options: {
           indexAxis: 'x',
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+
+      const arrestCtx = document.getElementById('arrestDistChart');
+      new Chart(arrestCtx, {
+        type: 'bar',
+        data: {
+          labels: ['0', '1', '2', '3', '4+'],
+          datasets: [{
+            label: 'Games',
+            data: data.arrestDist,
+            backgroundColor: 'crimson'
+          }]
+        },
+        options: {
+          indexAxis: 'x',
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+
+      const perfCtx = document.getElementById('performanceChart');
+      new Chart(perfCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Avg Loot Stolen', 'Avg Loot Recovered', 'Avg Arrests'],
+          datasets: [{
+            label: 'Per Game',
+            data: [data.performance.avgLootStolen, data.performance.avgLootRecovered, data.performance.avgArrests],
+            backgroundColor: ['lime', 'dodgerblue', 'crimson']
+          }]
+        },
+        options: {
+          indexAxis: 'x',
+          scales: { y: { beginAtZero: true } }
         }
       });
     }

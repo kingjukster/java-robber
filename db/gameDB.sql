@@ -6,6 +6,36 @@ ALTER USER gameDB QUOTA UNLIMITED ON USERS;
 
 -- Drop tables if they exist (in correct dependency order)
 BEGIN
+  EXECUTE IMMEDIATE 'DROP TABLE TurnEvents CASCADE CONSTRAINTS';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+
+BEGIN
+  EXECUTE IMMEDIATE 'DROP TABLE JewelEvents CASCADE CONSTRAINTS';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+
+BEGIN
+  EXECUTE IMMEDIATE 'DROP TABLE ArrestLog CASCADE CONSTRAINTS';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+
+BEGIN
+  EXECUTE IMMEDIATE 'DROP TABLE GameConfig CASCADE CONSTRAINTS';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+
+BEGIN
+  EXECUTE IMMEDIATE 'DROP TABLE PlayerProfiles CASCADE CONSTRAINTS';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+
+BEGIN
   EXECUTE IMMEDIATE 'DROP TABLE RobberStats CASCADE CONSTRAINTS';
 EXCEPTION WHEN OTHERS THEN NULL;
 END;
@@ -43,6 +73,58 @@ CREATE TABLE PoliceStats (
   police_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   jewels_recovered NUMBER DEFAULT 0,
   arrests_made NUMBER DEFAULT 0,
+  FOREIGN KEY (game_id) REFERENCES GameStats(game_id)
+);
+
+CREATE TABLE GameConfig (
+  game_id NUMBER PRIMARY KEY,
+  grid_size NUMBER,
+  max_turns NUMBER,
+  max_robbers NUMBER,
+  max_police NUMBER,
+  initial_jewel_count NUMBER,
+  FOREIGN KEY (game_id) REFERENCES GameStats(game_id)
+);
+
+CREATE TABLE PlayerProfiles (
+  player_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  player_type VARCHAR2(20),
+  skill_level NUMBER,
+  total_games NUMBER DEFAULT 0
+);
+
+CREATE TABLE TurnEvents (
+  event_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  game_id NUMBER,
+  player_id NUMBER,
+  turn_num NUMBER,
+  action VARCHAR2(20),
+  from_x NUMBER,
+  from_y NUMBER,
+  to_x NUMBER,
+  to_y NUMBER,
+  jewel_value NUMBER,
+  FOREIGN KEY (game_id) REFERENCES GameStats(game_id)
+);
+
+CREATE TABLE JewelEvents (
+  event_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  game_id NUMBER,
+  jewel_value NUMBER,
+  turn_picked NUMBER,
+  robber_id NUMBER,
+  police_id NUMBER,
+  FOREIGN KEY (game_id) REFERENCES GameStats(game_id)
+);
+
+CREATE TABLE ArrestLog (
+  event_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  game_id NUMBER,
+  turn_num NUMBER,
+  police_id NUMBER,
+  robber_id NUMBER,
+  location_x NUMBER,
+  location_y NUMBER,
   FOREIGN KEY (game_id) REFERENCES GameStats(game_id)
 );
 

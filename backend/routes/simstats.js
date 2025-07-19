@@ -62,12 +62,56 @@ router.get("/stats", async (req, res) => {
       if (count >= 0 && count <= 4) closeCallBins[count]++;
     });
 
+    // 5. Arrest count distribution per game
+    const arrestQuery = await connection.execute(`
+      SELECT game_id, SUM(arrests_made) AS total_arrests
+      FROM PoliceStats
+      GROUP BY game_id
+    `);
+    const arrestDist = [0, 0, 0, 0, 0];
+    arrestQuery.rows.forEach(row => {
+      const a = row[1];
+      const idx = a >= 4 ? 4 : a;
+      arrestDist[idx]++;
+    });
+
+    // 6. Average performance metrics per game
+    const avgLootQuery = await connection.execute(`
+      SELECT AVG(total_loot) FROM (
+        SELECT game_id, SUM(jewels_stolen) AS total_loot
+        FROM RobberStats
+        GROUP BY game_id
+      )
+    `);
+    const avgRecoveredQuery = await connection.execute(`
+      SELECT AVG(total_recovered) FROM (
+        SELECT game_id, SUM(jewels_recovered) AS total_recovered
+        FROM PoliceStats
+        GROUP BY game_id
+      )
+    `);
+    const avgArrestsQuery = await connection.execute(`
+      SELECT AVG(total_arrests) FROM (
+        SELECT game_id, SUM(arrests_made) AS total_arrests
+        FROM PoliceStats
+        GROUP BY game_id
+      )
+    `);
+
+    const performance = {
+      avgLootStolen: avgLootQuery.rows[0][0] || 0,
+      avgLootRecovered: avgRecoveredQuery.rows[0][0] || 0,
+      avgArrests: avgArrestsQuery.rows[0][0] || 0,
+    };
+
     res.json({
       winRateGoals,
       winRates,
       jewelBins,
       jewelCounts,
-      closeCalls: closeCallBins
+      closeCalls: closeCallBins,
+      arrestDist,
+      performance,
     });
 
   } catch (err) {
