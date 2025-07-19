@@ -27,7 +27,9 @@ class Robber {
       this.totalLootWorth += jewel.jewelValue;
       city.jewelCount--;
       city.cityGrid[jewel.jewelCoord.x][jewel.jewelCoord.y] = null;
+      return true;
     }
+    return false;
   }
 
   findPathToNearestJewel(city) {
