@@ -5,10 +5,13 @@ async function getDynamicRobberGoal() {
   if (!connection) return 340; // fallback default
 
   try {
-    // Get average and standard deviation of jewel values from the last 30 games
+    // Collect statistics from the most recent 30 games
     const jewelResult = await connection.execute(`
-      SELECT AVG(total_jewel_value) AS avg_val,
-             STDDEV(total_jewel_value) AS std_dev
+      SELECT
+        AVG(total_jewel_value) AS avg_val,
+        STDDEV(total_jewel_value) AS std_dev,
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY total_jewel_value) AS median_val,
+        COUNT(*) AS cnt
       FROM (
         SELECT total_jewel_value
         FROM GameStats
@@ -18,6 +21,8 @@ async function getDynamicRobberGoal() {
     `);
     const averageValue = jewelResult.rows[0][0];
     const stdDev = jewelResult.rows[0][1];
+    const medianValue = jewelResult.rows[0][2];
+    const count = jewelResult.rows[0][3];
 
     // Calculate robber win rate over the same set of recent games
     const winRateResult = await connection.execute(`
@@ -31,13 +36,18 @@ async function getDynamicRobberGoal() {
     `);
     const winRate = winRateResult.rows[0][0];
 
-    if (averageValue === null || winRate === null) return 340;
+    if (count === 0 || averageValue === null || medianValue === null || winRate === null) {
+      return 340;
+    }
 
-    // Start from the average minus a portion of the standard deviation
-    let goal = averageValue - (stdDev || 0) * 0.2;
+    // Weighted combination of median and average for stability
+    let goal = medianValue * 0.7 + averageValue * 0.3;
 
-    // Adjust based on win rate (ideal is 50%, shift goal ±40)
-    goal += (winRate - 0.5) * 80;
+    // Lower the goal slightly if variance is high
+    goal -= (stdDev || 0) * 0.1;
+
+    // Adjust based on win rate (ideal is 50%, shift goal ±50)
+    goal += (winRate - 0.5) * 100;
 
     // Clamp range between 250 and 375
     return Math.min(Math.max(Math.round(goal), 250), 375);
