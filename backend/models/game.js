@@ -111,24 +111,6 @@ class Game {
     }
     return false;
   }
-  
-
-  //junk code
-  /*
-  start() {
-    this.populateGrid();
-    while (this.turns < this.maxTurns && !this.isGameOver()) {
-      this.playTurn();
-    }
-
-    console.log("Game Over");
-    if (this.isGameOver()) {
-      console.log("Robbers win by collecting enough loot!");
-    } else {
-      console.log("Police win by catching all robbers!");
-    }
   }
-*/
-}
 
 module.exports = { Game };

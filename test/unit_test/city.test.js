@@ -2,6 +2,9 @@ const { expect } = require("chai");
 const fs = require("fs");
 const sinon = require("sinon");
 
+// Enable debug logging for City tests
+process.env.DEBUG_CITY_LOG = "true";
+
 // Import the City class and related models
 const { City } = require("../../backend/models/city");
 const { Jewel } = require("../../backend/models/jewel");

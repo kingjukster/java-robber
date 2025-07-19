@@ -2,6 +2,7 @@ const { Jewel } = require("./jewel");
 const { Robber } = require("./robber");
 const { Police } = require("./police");
 const fs = require("fs");
+const DEBUG_CITY_LOG = process.env.DEBUG_CITY_LOG === "true";
 
 class City {
   constructor() {
@@ -28,8 +29,10 @@ class City {
 
     //console.log(gridString); // Still print to console for debugging
 
-    // Write to a file
-    fs.appendFileSync("city_grid.txt", gridString + "\n\n", "utf8");
+    // Write to a file when debugging is enabled
+    if (DEBUG_CITY_LOG) {
+      fs.appendFileSync("city_grid.txt", gridString + "\n\n", "utf8");
+    }
   }
 
   getValidDirections(coord) {
