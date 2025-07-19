@@ -224,7 +224,7 @@ app.get("/simulate-multiple", async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.redirect('../../frontend/index.html');
+  res.redirect('/index.html');
 });
 
 app.listen(port, () => {
