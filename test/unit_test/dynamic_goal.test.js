@@ -19,8 +19,9 @@ describe("Dynamic Robber Goal", () => {
     sinon.restore();
   });
 
-  it("should return a value between 250 and 375 based on average jewel value", async () => {
-    connectionStub.execute.resolves({ rows: [[500]] }); // Simulate avg jewel value = 500
+  it("should return a value between 250 and 375 based on recent stats", async () => {
+    connectionStub.execute.onFirstCall().resolves({ rows: [[500, 50]] }); // avg = 500, stddev = 50
+    connectionStub.execute.onSecondCall().resolves({ rows: [[0.6]] }); // win rate = 0.6
 
     const goal = await getDynamicRobberGoal();
 
@@ -29,7 +30,8 @@ describe("Dynamic Robber Goal", () => {
   });
 
   it("should return default 340 if average is null", async () => {
-    connectionStub.execute.resolves({ rows: [[null]] });
+    connectionStub.execute.onFirstCall().resolves({ rows: [[null, null]] });
+    connectionStub.execute.onSecondCall().resolves({ rows: [[0.6]] });
 
     const goal = await getDynamicRobberGoal();
     expect(goal).to.equal(340);
