@@ -22,18 +22,64 @@ class Police {
     }
   }
 
+  canSeeRobber(robber, city) {
+    if (robber.robberCoord.x === this.policeCoord.x &&
+        robber.robberCoord.y === this.policeCoord.y) {
+      return true;
+    }
+    if (robber.robberCoord.x === this.policeCoord.x) {
+      const step = robber.robberCoord.y > this.policeCoord.y ? 1 : -1;
+      for (
+        let y = this.policeCoord.y + step;
+        y !== robber.robberCoord.y;
+        y += step
+      ) {
+        if (city.cityGrid[this.policeCoord.x][y]) return false;
+      }
+      return true;
+    }
+    if (robber.robberCoord.y === this.policeCoord.y) {
+      const step = robber.robberCoord.x > this.policeCoord.x ? 1 : -1;
+      for (
+        let x = this.policeCoord.x + step;
+        x !== robber.robberCoord.x;
+        x += step
+      ) {
+        if (city.cityGrid[x][this.policeCoord.y]) return false;
+      }
+      return true;
+    }
+    return true; // default visible
+  }
+
   findPath(start, goal, city) {
-    // This function should return an array of coordinates from start to goal.
-    // For simplicity, we use a placeholder that returns a straight-line path if possible.
-    // A real A* would account for obstacles, grid costs, etc.
+    const queue = [start];
+    const cameFrom = Array.from({ length: 10 }, () => Array(10).fill(null));
+    const visited = Array.from({ length: 10 }, () => Array(10).fill(false));
+    visited[start.x][start.y] = true;
+
+    while (queue.length > 0) {
+      const current = queue.shift();
+      if (current.x === goal.x && current.y === goal.y) break;
+
+      const neighbors = city.getValidDirections(current);
+      for (const n of neighbors) {
+        const cell = city.cityGrid[n.x][n.y];
+        if (!visited[n.x][n.y] && !(cell instanceof Police)) {
+          visited[n.x][n.y] = true;
+          cameFrom[n.x][n.y] = current;
+          queue.push(n);
+        }
+      }
+    }
+
+    if (!visited[goal.x][goal.y]) return [];
+
     const path = [];
-    let current = { ...start };
-    while (current.x !== goal.x || current.y !== goal.y) {
-      if (current.x < goal.x) current.x++;
-      else if (current.x > goal.x) current.x--;
-      else if (current.y < goal.y) current.y++;
-      else if (current.y > goal.y) current.y--;
-      path.push({ ...current });
+    let curr = goal;
+    while (curr.x !== start.x || curr.y !== start.y) {
+      path.unshift(curr);
+      curr = cameFrom[curr.x][curr.y];
     }
     return path;
   }
@@ -51,13 +97,17 @@ class Police {
         }
       }
     }
+
+    const visibleRobbers = activeRobbers.filter((r) => this.canSeeRobber(r, city));
+    const robbersToTarget = visibleRobbers.length > 0 ? visibleRobbers : activeRobbers;
     
     if (activeRobbers.length > 0) {
-      // Find the closest robber using a simple Manhattan distance measure.
-      let nearest = activeRobbers[0];
-      let minDistance = Math.abs(this.policeCoord.x - nearest.robberCoord.x) +
-                        Math.abs(this.policeCoord.y - nearest.robberCoord.y);
-      for (const robber of activeRobbers) {
+      // Find the closest visible robber using a simple Manhattan distance measure.
+      let nearest = robbersToTarget[0];
+      let minDistance =
+        Math.abs(this.policeCoord.x - nearest.robberCoord.x) +
+        Math.abs(this.policeCoord.y - nearest.robberCoord.y);
+      for (const robber of robbersToTarget) {
         const dist = Math.abs(this.policeCoord.x - robber.robberCoord.x) +
                      Math.abs(this.policeCoord.y - robber.robberCoord.y);
         if (dist < minDistance) {

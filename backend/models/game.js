@@ -2,16 +2,34 @@ const { City } = require("./city");
 const { Jewel } = require("./jewel");
 const { Robber } = require("./robber");
 const { Police } = require("./police");
+const GameModes = require("./gameModes");
 
 class Game {
-  constructor() {
+  constructor(options = {}) {
+    this.mode = options.mode || GameModes.DEFAULT;
     this.city = new City();
-    //this.city.populateGrid();
     this.turns = 0;
-    this.maxTurns = 30;
+    this.maxTurns = options.maxTurns || 30;
     this.maxRobbers = 4;
     this.maxPolice = 1;
     this.robberGoal = 340;
+
+    switch (this.mode) {
+      case GameModes.TIME_TRIAL:
+        this.maxTurns = options.maxTurns || 20;
+        break;
+      case GameModes.ENDLESS:
+        this.maxTurns = Infinity;
+        break;
+      case GameModes.CO_OP_HEIST:
+        this.maxRobbers = 6;
+        break;
+      case GameModes.CAPTURE_THE_FLAG:
+        this.flagLocation = null;
+        break;
+      default:
+        break;
+    }
     this.robbers = [
       new Robber(1, { x: 0, y: 0 }, "greedy"),
       new Robber(2, { x: 0, y: 0 }, "greedy"),
@@ -93,24 +111,6 @@ class Game {
     }
     return false;
   }
-  
-
-  //junk code
-  /*
-  start() {
-    this.populateGrid();
-    while (this.turns < this.maxTurns && !this.isGameOver()) {
-      this.playTurn();
-    }
-
-    console.log("Game Over");
-    if (this.isGameOver()) {
-      console.log("Robbers win by collecting enough loot!");
-    } else {
-      console.log("Police win by catching all robbers!");
-    }
   }
-*/
-}
 
 module.exports = { Game };
