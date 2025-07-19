@@ -1,8 +1,6 @@
--- Active: 1725866537809@@localhost@3306
 CREATE USER gameDB IDENTIFIED BY "SecurePass42";
 GRANT CONNECT, RESOURCE TO gameDB;
 ALTER USER gameDB QUOTA UNLIMITED ON USERS;
-
 
 -- Drop tables if they exist (in correct dependency order)
 BEGIN
