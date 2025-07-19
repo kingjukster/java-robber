@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const { Game } = require("../models/game");
 const { Jewel } = require("../models/jewel");
 const { Robber } = require("../models/robber");
@@ -21,13 +22,8 @@ app.use(express.static("public"));
 
 let game;
 
-app.get("/start-game", async (req, res) => {
-  const dynamicGoal = await getDynamicRobberGoal();
-  game = new Game();
-  game.robberGoal = dynamicGoal;
-  game.populateGrid();
-
-  const cityGrid = game.city.cityGrid.map((row) =>
+function mapGridToChars(grid) {
+  return grid.map((row) =>
     row.map((cell) => {
       if (cell instanceof Jewel) return "J";
       if (cell instanceof Robber) return "R";
@@ -35,6 +31,15 @@ app.get("/start-game", async (req, res) => {
       return ".";
     })
   );
+}
+
+app.get("/start-game", async (req, res) => {
+  const dynamicGoal = await getDynamicRobberGoal();
+  game = new Game();
+  game.robberGoal = dynamicGoal;
+  game.populateGrid();
+
+  const cityGrid = mapGridToChars(game.city.cityGrid);
 
   res.json({ cityGrid });
 });
@@ -87,14 +92,7 @@ app.get("/next-turn", async (req, res) => {
     });
   }
 
-  const cityGrid = game.city.cityGrid.map((row) =>
-    row.map((cell) => {
-      if (cell instanceof Jewel) return "J";
-      if (cell instanceof Robber) return "R";
-      if (cell instanceof Police) return "P";
-      return ".";
-    })
-  );
+  const cityGrid = mapGridToChars(game.city.cityGrid);
 
   res.json({ cityGrid });
 });
@@ -104,14 +102,7 @@ app.get("/new-game", async (req, res) => {
   game.robberGoal = await getDynamicRobberGoal();
   game.populateGrid();
 
-  const cityGrid = game.city.cityGrid.map((row) =>
-    row.map((cell) => {
-      if (cell instanceof Jewel) return "J";
-      if (cell instanceof Robber) return "R";
-      if (cell instanceof Police) return "P";
-      return ".";
-    })
-  );
+  const cityGrid = mapGridToChars(game.city.cityGrid);
   res.json({ cityGrid });
 });
 
@@ -224,7 +215,7 @@ app.get("/simulate-multiple", async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.redirect('../../frontend/index.html');
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 app.listen(port, () => {
