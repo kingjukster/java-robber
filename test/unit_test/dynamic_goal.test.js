@@ -20,7 +20,12 @@ describe("Dynamic Robber Goal", () => {
   });
 
   it("should return a value between 250 and 375 based on average jewel value", async () => {
-    connectionStub.execute.resolves({ rows: [[500]] }); // Simulate avg jewel value = 500
+    // First DB call returns average jewel value, second returns win rate
+    connectionStub.execute
+      .onFirstCall()
+      .resolves({ rows: [[500]] }) // avg jewel value
+      .onSecondCall()
+      .resolves({ rows: [[0.6]] }); // win rate
 
     const goal = await getDynamicRobberGoal();
 
@@ -29,7 +34,11 @@ describe("Dynamic Robber Goal", () => {
   });
 
   it("should return default 340 if average is null", async () => {
-    connectionStub.execute.resolves({ rows: [[null]] });
+    connectionStub.execute
+      .onFirstCall()
+      .resolves({ rows: [[null]] }) // avg jewel value is null
+      .onSecondCall()
+      .resolves({ rows: [[0.6]] }); // win rate
 
     const goal = await getDynamicRobberGoal();
     expect(goal).to.equal(340);
