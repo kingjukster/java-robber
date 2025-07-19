@@ -1,7 +1,7 @@
 const { getConnection } = require("../../db/database");
 
-async function addGame({ turnCount, robberGoal, totalJewelValue, winner }) {
-  const connection = await getConnection();
+async function addGame({ turnCount, robberGoal, totalJewelValue, winner }, conn) {
+  const connection = conn || (await getConnection());
   if (!connection) return;
 
   try {
@@ -16,12 +16,12 @@ async function addGame({ turnCount, robberGoal, totalJewelValue, winner }) {
   } catch (err) {
     console.error("Error inserting game:", err);
   } finally {
-    if (connection) await connection.close();
+    if (!conn && connection) await connection.close();
   }
 }
 
-async function addPlayer({ role, lootWorth = 0, robbersCaught = 0 }) {
-  const connection = await getConnection();
+async function addPlayer({ role, lootWorth = 0, robbersCaught = 0 }, conn) {
+  const connection = conn || (await getConnection());
   if (!connection) return;
 
   try {
@@ -52,7 +52,7 @@ async function addPlayer({ role, lootWorth = 0, robbersCaught = 0 }) {
   } catch (err) {
     console.error("Error adding player:", err);
   } finally {
-    await connection.close();
+    if (!conn && connection) await connection.close();
   }
 }
 

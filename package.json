@@ -2,11 +2,10 @@
   "name": "java-robber",
   "version": "1.0.0",
   "description": "",
-  "main": "class.js",
+  "main": "backend/routes/server.js",
   "scripts": {
     "start": "node ./backend/routes/server.js",
-    "test": "mocha test/unit_test/**/*.test.js"
-,
+    "test": "npx mocha test/unit_test/**/*.test.js",
     "lint": "eslint ."
   },
   "repository": {
