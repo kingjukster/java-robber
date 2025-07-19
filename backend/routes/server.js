@@ -11,6 +11,7 @@ const {
   getTopRobbers,
   getTopPolice,
 } = require("../services/gameService");
+const { getConnection } = require("../../db/database");
 const statsRoutes = require("./simstats");
 const { getDynamicRobberGoal } = require("../services/analyticsService");
 
@@ -55,35 +56,48 @@ app.get("/next-turn", async (req, res) => {
   const gameOverMessage = game.isGameOver();
 
   if (gameOverMessage) {
+    let connection;
     try {
-      await addGame({
-        turnCount: game.turns,
-        robberGoal: game.robberGoal,
-        totalJewelValue: game.city.totalJewelValue || 0,
-        winner: gameOverMessage === "Robbers Win!" ? "Robbers" : "Police",
-      });
+      connection = await getConnection();
+      await addGame(
+        {
+          turnCount: game.turns,
+          robberGoal: game.robberGoal,
+          totalJewelValue: game.city.totalJewelValue || 0,
+          winner: gameOverMessage === "Robbers Win!" ? "Robbers" : "Police",
+        },
+        connection
+      );
 
       for (let x = 0; x < 10; x++) {
         for (let y = 0; y < 10; y++) {
           const cell = game.city.cityGrid[x][y];
           if (cell instanceof Robber) {
-            await addPlayer({
-              role: "Robber",
-              lootWorth: cell.totalLootWorth,
-            });
+            await addPlayer(
+              {
+                role: "Robber",
+                lootWorth: cell.totalLootWorth,
+              },
+              connection
+            );
           } else if (cell instanceof Police) {
-            await addPlayer({
-              role: "Police",
-              lootWorth: cell.lootWorth,
-              robbersCaught: cell.robbersCaught,
-              
-            });
+            await addPlayer(
+              {
+                role: "Police",
+                lootWorth: cell.lootWorth,
+                robbersCaught: cell.robbersCaught,
+
+              },
+              connection
+            );
           }
         }
       }
     } catch (err) {
       console.error("Error saving game stats:", err);
       return res.status(500).json({ error: "Failed to save game stats." });
+    } finally {
+      if (connection) await connection.close();
     }
 
     return res.json({
@@ -187,23 +201,31 @@ app.get("/simulate-multiple", async (req, res) => {
       const gameOverMessage = simGame.isGameOver();
       const winner = gameOverMessage === "Robbers Win!" ? "Robbers" : "Police";
 
-      await addGame({
-        turnCount: simGame.turns,
-        robberGoal: simGame.robberGoal,
-        totalJewelValue: simGame.city.totalJewelValue|| 0,
-        winner,
-      });
+      let connection;
+      try {
+        connection = await getConnection();
+        await addGame(
+          {
+            turnCount: simGame.turns,
+            robberGoal: simGame.robberGoal,
+            totalJewelValue: simGame.city.totalJewelValue|| 0,
+            winner,
+          },
+          connection
+        );
 
-      for (let x = 0; x < 10; x++) {
-        for (let y = 0; y < 10; y++) {
-          const cell = simGame.city.cityGrid[x][y];
-          if (cell instanceof Robber) {
-            await addPlayer({ role: "Robber", lootWorth: cell.totalLootWorth });
-          } else if (cell instanceof Police) {
-            await addPlayer({role: "Police", lootWorth: cell.lootWorth, robbersCaught: cell.robbersCaught,
-            });
+        for (let x = 0; x < 10; x++) {
+          for (let y = 0; y < 10; y++) {
+            const cell = simGame.city.cityGrid[x][y];
+            if (cell instanceof Robber) {
+              await addPlayer({ role: "Robber", lootWorth: cell.totalLootWorth }, connection);
+            } else if (cell instanceof Police) {
+              await addPlayer({role: "Police", lootWorth: cell.lootWorth, robbersCaught: cell.robbersCaught}, connection);
+            }
           }
         }
+      } finally {
+        if (connection) await connection.close();
       }
     }
 
