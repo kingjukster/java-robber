@@ -8,7 +8,7 @@ class City {
     this.cityGrid = Array.from({ length: 10 }, () => Array(10).fill(null));
     this.maxJewels = 47;
     this.jewelCount = this.maxJewels;
-    this.totalJewelValue = this.calculateTotalJewelValue()
+    this.totalJewelValue = this.calculateTotalJewelValue();
   }
 
   printGrid() {
