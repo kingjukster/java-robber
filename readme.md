@@ -51,7 +51,7 @@ A grid‐based simulation game where **Robbers** try to collect enough loot (jew
 
 ## Environment Variables
 
-Create a **.env** file in the project root to store your Oracle DB credentials and any other config:
+Copy **.env.example** to **.env** in the project root and adjust the values for your environment:
 
 ```
 DB_USER=system
