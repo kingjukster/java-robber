@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>All-Time Stats</title>
+    <link rel="stylesheet" href="statstyles.css" />
+    <style>
+      #nav-dropdown {
+        position: fixed;
+        top: 10px;
+        right: 20px;
+        z-index: 1000;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        padding: 0.5em;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <select id="nav-dropdown" onchange="navigatePage(this.value)">
+      <option value="index.html">🏠 Home</option>
+      <option value="stats.html">📊 Stats</option>
+      <option value="simstats.html">⚙️ Sim Stats</option>
+    </select>
+
+    <script>
+      function navigatePage(page) {
+        if (window.location.pathname.split("/").pop() !== page) {
+          window.location.href = page;
+        }
+      }
+
+      const current = window.location.pathname.split("/").pop();
+      const nav = document.getElementById("nav-dropdown");
+      for (let i = 0; i < nav.options.length; i++) {
+        if (nav.options[i].value === current) {
+          nav.selectedIndex = i;
+          break;
+        }
+      }
+    </script>
+
+    <h1>All-Time Statistics</h1>
+
+    <!-- A container for summary cards -->
+    <div class="stats-cards" id="stats-cards">
+      <!-- We'll fill these with JavaScript -->
+    </div>
+
+    <!-- Container for both tables side by side -->
+    <div id="tables-container">
+      <!-- Robber Stats -->
+      <div class="table-section">
+        <h2>Robber Stats</h2>
+        <table id="robber-stats-table">
+          <thead>
+            <tr>
+              <th>Total Robber Wins</th>
+              <th>Total Jewels Stolen</th>
+              <th>Avg Jewels Stolen</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Populated by stats.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Police Stats -->
+      <div class="table-section">
+        <h2>Police Stats</h2>
+        <table id="police-stats-table">
+          <thead>
+            <tr>
+              <th>Total Police Wins</th>
+              <th>Total Arrests</th>
+              <th>Avg Arrests</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Populated by stats.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="top10-container">
+      <div class="top10-section">
+        <!-- NEW: Top 10 Robbers table -->
+        <h2>Top 10 Robbers</h2>
+        <table id="top-robbers-table">
+          <thead>
+            <tr>
+              <th>Player ID</th>
+              <th>Jewels Stolen</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+      <!-- NEW: Top 10 Police table -->
+      <div class="top10-section">
+        <h2>Top 10 Police</h2>
+        <table id="top-police-table">
+          <thead>
+            <tr>
+              <th>Player ID</th>
+              <th>Jewels Recovered</th>
+              <th>Arrests Made</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script src="stats.js"></script>
+  </body>
+</html>
