@@ -66,7 +66,7 @@ async function getDynamicRobberGoal() {
     goal += (winRate - 0.5) * 100;
 
     // Clamp range between 250 and 375
-    return Math.min(Math.max(Math.round(goal), 250), 375);
+    return Math.min(Math.max(Math.round(goal), 250), 999);
   } catch (err) {
     console.error("Failed to calculate dynamic goal:", err);
     return 340;
