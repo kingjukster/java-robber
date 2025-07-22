@@ -33,7 +33,7 @@ class Game {
     this.robbers = [
       new Robber(1, { x: 0, y: 0 }, "greedy"),
       new Robber(2, { x: 0, y: 0 }, "greedy"),
-      new Robber(3, { x: 0, y: 0 }, "ordinary"),
+      new Robber(3, { x: 0, y: 0 }, "quantum"),
       new Robber(4, { x: 0, y: 0 }, "ordinary"),
     ];
     this.police = [new Police(1, { x: 0, y: 0 })];

@@ -72,6 +72,9 @@ function populateGrid(cityGrid) {
       if (cell === "J") {
         cellDiv.textContent = "J";
         cellDiv.style.backgroundColor = "#FFD700"; // bright gold
+      } else if (cell === "Q") {
+        cellDiv.textContent = "Q";
+        cellDiv.style.backgroundColor = "#9c27b0"; // purple for quantum robber
       } else if (cell === "R") {
         cellDiv.textContent = "R";
         cellDiv.style.backgroundColor = "#f44336"; // red

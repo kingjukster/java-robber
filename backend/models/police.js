@@ -19,6 +19,7 @@ class Police {
       robber.totalLootWorth = 0;
       this.robbersCaught++;
       robber.isActive = false;
+      Robber.capturedRobbers.push(robber);
     }
   }
 
