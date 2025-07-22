@@ -60,6 +60,16 @@ DB_CONNECT_STRING=localhost/FREE
 PORT=3000
 ```
 
+### Test DB Connection
+
+Verify your Oracle connection before running the server:
+
+```bash
+node db/testConnection.js
+```
+If this script fails to connect, ensure the Oracle instance is running and the
+credentials in `.env` are correct.
+
 > **Never** commit `.env` to version control (it should be in your `.gitignore`).
 
 ---

@@ -1,8 +1,24 @@
 const { getConnection } = require("../../db/database");
+const jsonStore = require("../../db/jsonStorage");
+const { Game } = require("../models/game");
 
 async function getDynamicRobberGoal() {
   const connection = await getConnection();
-  if (!connection) return 340; // fallback default
+  if (!connection) {
+    const data = jsonStore.computeStats();
+    const recentGames = data.GameStats.slice(-30);
+    if (recentGames.length === 0) return 340;
+    const totalJewelValue = recentGames.reduce((s, g) => s + g.total_jewel_value, 0);
+    const averageValue = totalJewelValue / recentGames.length;
+    const medianValue = recentGames
+      .map(g => g.total_jewel_value)
+      .sort((a, b) => a - b)[Math.floor(recentGames.length / 2)];
+    const winRate =
+      recentGames.filter(g => g.winner === 'Robbers').length / recentGames.length;
+    let goal = medianValue * 0.7 + averageValue * 0.3;
+    goal += (winRate - 0.5) * 100;
+    return Math.min(Math.max(Math.round(goal), 250), 375);
+  }
 
   try {
     // Collect statistics from the most recent 30 games

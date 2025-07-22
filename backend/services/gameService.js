@@ -1,8 +1,17 @@
 const { getConnection } = require("../../db/database");
+const jsonStore = require("../../db/jsonStorage");
 
 async function addGame({ turnCount, robberGoal, totalJewelValue, winner }, conn) {
   const connection = conn || (await getConnection());
-  if (!connection) return;
+  if (!connection) {
+    // Fallback to JSON storage when DB is unavailable
+    return jsonStore.addGame({
+      turnCount,
+      robberGoal,
+      totalJewelValue,
+      winner,
+    });
+  }
 
   try {
     const sql = `INSERT INTO GameStats (total_turns, robber_goal, total_jewel_value, winner) VALUES (:total_turns, :robber_goal, :total_jewel_value, :winner)`;
@@ -22,7 +31,19 @@ async function addGame({ turnCount, robberGoal, totalJewelValue, winner }, conn)
 
 async function addPlayer({ role, lootWorth = 0, robbersCaught = 0 }, conn) {
   const connection = conn || (await getConnection());
-  if (!connection) return;
+  if (!connection) {
+    const gameId = jsonStore.computeStats().GameStats.length;
+    if (role === "Robber") {
+      jsonStore.addRobber({ gameId, jewels_stolen: lootWorth });
+    } else if (role === "Police") {
+      jsonStore.addPolice({
+        gameId,
+        jewels_recovered: lootWorth,
+        arrests_made: robbersCaught,
+      });
+    }
+    return;
+  }
 
   try {
     if (role === "Robber") {
@@ -58,7 +79,14 @@ async function addPlayer({ role, lootWorth = 0, robbersCaught = 0 }, conn) {
 
 async function getStats() {
   const connection = await getConnection();
-  if (!connection) return;
+  if (!connection) {
+    const data = jsonStore.computeStats();
+    return {
+      games: data.GameStats,
+      robbers: data.RobberStats,
+      police: data.PoliceStats,
+    };
+  }
 
   try {
     const gameResult = await connection.execute(
@@ -86,7 +114,40 @@ async function getStats() {
 
 async function getAllTimeStats() {
   const connection = await getConnection();
-  if (!connection) return null;
+  if (!connection) {
+    const data = jsonStore.computeStats();
+    const totalGames = data.GameStats.length;
+    const robberWins = data.GameStats.filter(g => g.winner === 'Robbers').length;
+    const policeWins = data.GameStats.filter(g => g.winner === 'Police').length;
+    const avgTurns =
+      totalGames === 0
+        ? 0
+        : data.GameStats.reduce((s, g) => s + g.total_turns, 0) / totalGames;
+    const totalJewels = data.RobberStats.reduce((s, r) => s + r.jewels_stolen, 0);
+    const avgJewels =
+      data.RobberStats.length === 0
+        ? 0
+        : totalJewels / data.RobberStats.length;
+    const totalArrests = data.PoliceStats.reduce(
+      (s, p) => s + p.arrests_made,
+      0
+    );
+    const avgArrests =
+      data.PoliceStats.length === 0
+        ? 0
+        : totalArrests / data.PoliceStats.length;
+
+    return {
+      totalGames,
+      robberWins,
+      policeWins,
+      avgTurns: Math.round(avgTurns * 100) / 100,
+      robberTotalJewelsStolen: totalJewels,
+      avgJewelsStolen: Math.round(avgJewels * 100) / 100,
+      totalArrests,
+      avgArrests: Math.round(avgArrests * 100) / 100,
+    };
+  }
 
   try {
     const result = await connection.execute(`
@@ -136,7 +197,11 @@ async function getAllTimeStats() {
 
 async function getTopRobbers() {
   const connection = await getConnection();
-  if (!connection) return [];
+  if (!connection) {
+    const data = jsonStore.computeStats();
+    const sorted = data.RobberStats.slice().sort((a, b) => b.jewels_stolen - a.jewels_stolen);
+    return sorted.slice(0, 10).map((r, idx) => [idx + 1, r.jewels_stolen]);
+  }
 
   try {
     const result = await connection.execute(`
@@ -156,7 +221,11 @@ async function getTopRobbers() {
 
 async function getTopPolice() {
   const connection = await getConnection();
-  if (!connection) return [];
+  if (!connection) {
+    const data = jsonStore.computeStats();
+    const sorted = data.PoliceStats.slice().sort((a, b) => b.arrests_made - a.arrests_made);
+    return sorted.slice(0, 10).map((p, idx) => [idx + 1, p.jewels_recovered, p.arrests_made]);
+  }
 
   try {
     const result = await connection.execute(`
