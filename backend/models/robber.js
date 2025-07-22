@@ -2,6 +2,8 @@ const { Jewel } = require("./jewel");
 const { Police } = require("./police");
 
 class Robber {
+  static capturedRobbers = [];
+
   constructor(robberId, robberCoord, robberType) {
     this.robberId = robberId;
     this.robberCoord = robberCoord;
@@ -10,6 +12,9 @@ class Robber {
     this.isActive = true;
     this.robberType = robberType;
     this.maxCap = 17;
+    if (this.robberType === "quantum") {
+      this.phaseChance = 0.1;
+    }
   }
 
   checkBag() {
@@ -27,6 +32,9 @@ class Robber {
       this.totalLootWorth += jewel.jewelValue;
       city.jewelCount--;
       city.cityGrid[jewel.jewelCoord.x][jewel.jewelCoord.y] = null;
+      if (this.robberType === "quantum") {
+        this.phaseChance = Math.min(this.phaseChance + 0.05, 0.9);
+      }
       return true;
     }
     return false;
@@ -60,8 +68,95 @@ class Robber {
     return [];
   }
 
+  findPathToNearestPolice(city) {
+    const grid = city.cityGrid;
+    const visited = Array.from({ length: 10 }, () => Array(10).fill(false));
+    const queue = [{ x: this.robberCoord.x, y: this.robberCoord.y, path: [] }];
+    visited[this.robberCoord.x][this.robberCoord.y] = true;
+
+    while (queue.length > 0) {
+      const current = queue.shift();
+      const { x, y, path } = current;
+      const cell = grid[x][y];
+
+      if (cell instanceof Police) {
+        return path;
+      }
+
+      const directions = city.getValidDirections({ x, y });
+      for (const dir of directions) {
+        if (!visited[dir.x][dir.y]) {
+          visited[dir.x][dir.y] = true;
+          queue.push({ x: dir.x, y: dir.y, path: [...path, dir] });
+        }
+      }
+    }
+
+    return [];
+  }
+
+  attemptPhase(city) {
+    const path = this.findPathToNearestPolice(city);
+    if (path.length === 0 || Math.random() >= this.phaseChance) {
+      return false;
+    }
+
+    const target = path[path.length - 1];
+    const police = city.cityGrid[target.x][target.y];
+    if (!(police instanceof Police)) return false;
+
+    const freed = Robber.capturedRobbers.shift();
+    if (freed) {
+      freed.isActive = true;
+      for (let i = 0; i < 100; i++) {
+        const x = Math.floor(Math.random() * 10);
+        const y = Math.floor(Math.random() * 10);
+        if (!city.cityGrid[x][y]) {
+          city.cityGrid[x][y] = freed;
+          freed.robberCoord = { x, y };
+          break;
+        }
+      }
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 50; j++) {
+          const x = Math.floor(Math.random() * 10);
+          const y = Math.floor(Math.random() * 10);
+          if (!city.cityGrid[x][y]) {
+            const jewel = new Jewel({ x, y });
+            city.cityGrid[x][y] = jewel;
+            city.jewelCount++;
+            break;
+          }
+        }
+      }
+    }
+
+    const stolen = Math.floor(police.lootWorth / 2);
+    police.lootWorth -= stolen;
+    this.totalLootWorth += stolen;
+
+    const oneAway = city.getValidDirections(police.policeCoord);
+    let twoAway = [];
+    for (const o of oneAway) {
+      twoAway = twoAway.concat(city.getValidDirections(o));
+    }
+    const dests = twoAway.filter((d) => !city.cityGrid[d.x][d.y]);
+    const dest = dests[Math.floor(Math.random() * dests.length)] || this.robberCoord;
+
+    city.cityGrid[this.robberCoord.x][this.robberCoord.y] = null;
+    city.cityGrid[dest.x][dest.y] = this;
+    this.robberCoord = { ...dest };
+
+    this.phaseChance = 0.1;
+    return true;
+  }
+
   move(city) {
     if (!this.isActive) return;
+
+    if (this.robberType === "quantum" && this.attemptPhase(city)) {
+      return;
+    }
 
     let movesLeft = 1;
     let justPickedUpJewel = false;
