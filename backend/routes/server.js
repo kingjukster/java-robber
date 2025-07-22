@@ -27,7 +27,9 @@ function mapGridToChars(grid) {
   return grid.map((row) =>
     row.map((cell) => {
       if (cell instanceof Jewel) return "J";
-      if (cell instanceof Robber) return "R";
+      if (cell instanceof Robber) {
+        return cell.robberType === "quantum" ? "Q" : "R";
+      }
       if (cell instanceof Police) return "P";
       return ".";
     })
