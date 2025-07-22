@@ -44,5 +44,5 @@ CREATE TABLE PoliceStats (
   FOREIGN KEY (game_id) REFERENCES GameStats(game_id)
 );
 
-SELECT * from GAMESTATS;
+SELECT * from GAMESTATS where ROBBER_GOAL >= 375;
 

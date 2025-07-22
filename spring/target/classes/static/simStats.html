@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Robber vs Police Analytics</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #1e1e1e;
+      color: #f0f0f0;
+      padding: 2rem;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .chart-container {
+      width: 90%;
+      max-width: 800px;
+      margin: 2rem auto;
+      background: #2a2a2a;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+    #nav-dropdown {
+      position: fixed;
+      top: 10px;
+      right: 20px;
+      z-index: 1000;
+      background-color: #333;
+      color: #fff;
+      border: none;
+      padding: 0.5em;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <select id="nav-dropdown" onchange="navigatePage(this.value)">
+    <option value="index.html">🏠 Home</option>
+    <option value="stats.html">📊 Stats</option>
+    <option value="simstats.html">⚙️ Sim Stats</option>
+  </select>
+  <script>
+    function navigatePage(page) {
+      if (window.location.pathname.split("/").pop() !== page) {
+        window.location.href = page;
+      }
+    }
+    const current = window.location.pathname.split("/").pop();
+    const nav = document.getElementById("nav-dropdown");
+    for (let i = 0; i < nav.options.length; i++) {
+      if (nav.options[i].value === current) {
+        nav.selectedIndex = i;
+        break;
+      }
+    }
+  </script>
+
+  <h1>Game Statistics Dashboard</h1>
+
+  <div class="chart-container">
+    <h2>Robber Win Rate vs Robber Goal</h2>
+    <canvas id="winRateChart"></canvas>
+  </div>
+
+  <div class="chart-container">
+    <h2>Total Jewel Value Distribution</h2>
+    <canvas id="jewelDistChart"></canvas>
+  </div>
+
+  <div class="chart-container">
+    <h2>Close Calls: Robbers Reaching 300+ Loot</h2>
+    <canvas id="closeCallsChart"></canvas>
+  </div>
+
+  <script>
+    async function fetchStats() {
+      const res = await fetch('/api/stats');
+      return await res.json();
+    }
+
+    async function initCharts() {
+      const data = await fetchStats();
+
+      // Robber Win Rate vs Robber Goal
+      const winRateCtx = document.getElementById('winRateChart');
+      new Chart(winRateCtx, {
+        type: 'line',
+        data: {
+          labels: data.winRateGoals,
+          datasets: [{
+            label: 'Robber Win Rate',
+            data: data.winRates,
+            borderColor: 'lime',
+            backgroundColor: 'rgba(0,255,0,0.1)',
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              min: 0,
+              max: 1,
+              ticks: {
+                callback: value => `${value * 100}%`
+              }
+            }
+          }
+        }
+      });
+
+      // Jewel Distribution
+      const jewelDistCtx = document.getElementById('jewelDistChart');
+      new Chart(jewelDistCtx, {
+        type: 'bar',
+        data: {
+          labels: data.jewelBins,
+          datasets: [{
+            label: 'Games',
+            data: data.jewelCounts,
+            backgroundColor: 'dodgerblue'
+          }]
+        },
+        options: {
+          indexAxis: 'x',
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+
+      // Close Calls
+      const closeCallsCtx = document.getElementById('closeCallsChart');
+      new Chart(closeCallsCtx, {
+        type: 'bar',
+        data: {
+          labels: ['0 Robbers', '1 Robber', '2 Robbers', '3 Robbers', '4 Robbers'],
+          datasets: [{
+            label: 'Games',
+            data: data.closeCalls,
+            backgroundColor: 'orange'
+          }]
+        },
+        options: {
+          indexAxis: 'x',
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    initCharts();
+  </script>
+</body>
+</html>
