@@ -35,10 +35,10 @@ function mapGridToChars(grid) {
 }
 
 app.get("/start-game", async (req, res) => {
-  const dynamicGoal = await getDynamicRobberGoal();
   game = new Game();
-  game.robberGoal = dynamicGoal;
   game.populateGrid();
+  const dynamicGoal = await getDynamicRobberGoal();
+  game.robberGoal = Math.min(dynamicGoal, game.city.totalJewelValue);
 
   const cityGrid = mapGridToChars(game.city.cityGrid);
 
@@ -113,8 +113,9 @@ app.get("/next-turn", async (req, res) => {
 
 app.get("/new-game", async (req, res) => {
   game = new Game();
-  game.robberGoal = await getDynamicRobberGoal();
   game.populateGrid();
+  const dynamicGoal = await getDynamicRobberGoal();
+  game.robberGoal = Math.min(dynamicGoal, game.city.totalJewelValue);
 
   const cityGrid = mapGridToChars(game.city.cityGrid);
   res.json({ cityGrid });
@@ -191,8 +192,9 @@ app.get("/simulate-multiple", async (req, res) => {
   try {
     for (let i = 0; i < numGames; i++) {
       const simGame = new Game();
-      simGame.robberGoal = await getDynamicRobberGoal();
       simGame.populateGrid();
+      const dynamicGoal = await getDynamicRobberGoal();
+      simGame.robberGoal = Math.min(dynamicGoal, simGame.city.totalJewelValue);
 
       while (!simGame.isGameOver()) {
         simGame.playTurn();
